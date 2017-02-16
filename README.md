@@ -8,5 +8,5 @@ All portions of this software are Copyright (c) 2017 Imba Enterprises Pvt. Ltd. 
 
 Happy coding!
 
-************************* How to run this code *****************************
-To be added.
+************************* Setup Psylab *****************************
+python install/setup.py
