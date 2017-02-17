@@ -14,8 +14,8 @@ def initialize():
 def after_market():
     """
     Called once everyday after the algorithm ends
-    """
     return
+    """
 
 def handle_data():
     """

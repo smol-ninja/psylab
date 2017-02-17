@@ -10,3 +10,6 @@ Happy coding!
 
 ************************* Setup Psylab *****************************
 python install/setup.py
+
+********************* Setting up Mongo DB **************************
+Follow the instruction at https://docs.mongodb.com/master/tutorial/install-mongodb-on-ubuntu/
