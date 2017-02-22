@@ -16,43 +16,44 @@ if db.symbol_sid.find_one({ "_id": { '$exists': True } }) is None:
 def insertSid_data(sid=None,date=None,time=None,open=None,high=None,low=None,close=None,volume=None,open_interest=None):
     print "inserting data"
     result=db.psytest.insert_one({
-        "sid":sid,
+        "_id":sid,
         "ticker":{
-            date:[{
-                    "time":time,
+            date:{
+                    time:{
                     "high":high,
                     "low":low,
                     "close":close,
                     "volume":volume,
-                    "openInterest":open_interest
+                    "openInterest":open_interest}
+
                 }
-            ]
         }
     })
-    
+
 def insertDatetime_data(sid=None,date=None,time=None,open=None,high=None,low=None,close=None,volume=None,open_interest=None):
     print "inserting Datedata"
     option_type="ticker."+date
     db.psytest.update_one({
-      "sid": sid
-    },  {"$set": {option_type: [{
-            "time":time,
-            "high":high,
-            "low":low,
-            "close":close,
-            "volume":volume,
-            "openInterest":open_interest
-      }]}})
+      "_id": sid
+    },  {"$set": {option_type:{
+                    time:{
+                    "high":high,
+                    "low":low,
+                    "close":close,
+                    "volume":volume,
+                    "openInterest":open_interest}
+                    }
+                }
+    })
 
 def updateDatetime_data(sid=None,date=None,time=None,open=None,high=None,low=None,close=None,volume=None,open_interest=None):
     print "updating data"
-    option_type="ticker."+date
-    db.psytest.update(
+    option_type="ticker."+date+"."+time
+    db.psytest.update_one(
       {
-        "sid":sid
+        "_id":sid
       },
-       { "$addToSet": { option_type: {
-               "time":time,
+       { "$set": { option_type: {
                "high":high,
                "low":low,
                "close":close,
@@ -98,7 +99,7 @@ def createSid(ticker):
         sid='10'+str(sid)
     elif len(ticker)==3:
         sid='30'+str(sid)
-        sid+=ticker[1]+(str(abbr_to_num[ticker[2].title()]))
+        sid+=ticker[1]+(str(abbr_to_num[ticker[2].title()]))++str(datetime.now().year))
     return sid
 
 def writeMongo(data,row,ticker_col):
@@ -117,18 +118,21 @@ def writeMongo(data,row,ticker_col):
         if not firstRun:
             previous_date=(data[row-1][1].replace("/",""))
             previous_time=(data[row-1][2].replace(":",""))
-        if data[row-1][0]==data[row][0] and not firstRun:
+        if db.psytest.find_one({ "_id":sid}):
             if isDate(current_date,previous_date):
                 insertDatetime_data(sid,current_date,current_time,open,high,low,close,volume,open_interest)
             else:
                 updateDatetime_data(sid,current_date,current_time,open,high,low,close,volume,open_interest)
-        elif (data[row-1][0]==data[row][0] and firstRun) or data[row-1][0]!=data[row][0]:
+        elif db.psytest.find_one({ "_id":sid}) is None:
             insertSid_data(sid,current_date,current_time,open,high,low,close,volume,open_interest)
     else:
-        insertSid_data(sid,current_date,current_time,open,high,low,close,volume,open_interest)
+        if db.psytest.find_one({ "_id":sid}):
+            insertDatetime_data(sid,current_date,current_time,open,high,low,close,volume,open_interest)
+        elif db.psytest.find_one({ "_id":sid}) is None:
+            insertSid_data(sid,current_date,current_time,open,high,low,close,volume,open_interest)
 
 csvFile = open('NSEF&O_09012017.csv')
-# csvFile = open('test.csv')
+fileYear="2017"
 csvReader = csv.reader(csvFile)
 data = list(csvReader)
 # sorting data by name
