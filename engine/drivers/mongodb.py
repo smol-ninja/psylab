@@ -83,23 +83,37 @@ def getNextSequence(collection,symbol):
 def createSid(ticker):
     sid=None
     if (db.symbol_sid.find_one({'symbol':ticker[0]})) is None:
-        sid=getNextSequence(db.sid_counter,"sid")
-        db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0]})
+        if "-" in ticker[0]:
+            sid=getNextSequence(db.sid_counter,"sid")
+            if "III" in ticker[0]:
+                expiry='three'
+            elif "II" in ticker[0]:
+                expiry='two'
+            elif "I" in ticker[0]:
+                expiry='one'
+            db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0],'expiry':expiry})
+        else:
+            sid=getNextSequence(db.sid_counter,"sid")
+            db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0]})
     elif (db.symbol_sid.find_one({'symbol':ticker[0]})):
         result = db.symbol_sid.find_one({'symbol':ticker[0]})
         sid=result["sid"]
     if len(ticker)==5:
+        print "option",
         sid='50'+str(sid)
         sid+=(ticker[1]+(str(abbr_to_num[ticker[2].title()])+str(datetime.now().year))+ticker[3])
         if ticker[4]=='PE':
             sid+='1'
         else:
             sid+='0'
-    elif len(ticker)==1:
-        sid='10'+str(sid)
-    elif len(ticker)==3:
-        sid='30'+str(sid)
-        sid+=ticker[1]+(str(abbr_to_num[ticker[2].title()]))++str(datetime.now().year))
+    elif len(ticker)!=5:
+        if "-" in ticker[0]:
+            sid='10'+str(sid)
+            print "future",
+        else:
+            sid='30'+str(sid)
+            print "cash",
+            sid+=ticker[1]+(str(abbr_to_num[ticker[2].title()]))+str(datetime.now().year)
     return sid
 
 def writeMongo(data,row,ticker_col):
@@ -138,12 +152,11 @@ data = list(csvReader)
 # sorting data by name
 data=sorted(data, key=lambda x: x[0], reverse=False)
 firstRun=True
-for row in range(0,len(data)):
+for row in range(257,270):
     # creating an array of ticker column
     ticker_col=["".join(x) for _, x in itertools.groupby(data[row][0], key=str.isdigit)]
     len_ticker=len(ticker_col)
     if ticker_col[len_ticker-1]=='PE' or ticker_col[len_ticker-1]=='CE':
-        print "option",
         if 6<len_ticker:
             for i in range (0,len(ticker_col)):
                 if ticker_col[i]=='.':
@@ -152,21 +165,8 @@ for row in range(0,len(data)):
             if 6<=len(ticker_col):
                 ticker_col[0:len(ticker_col)-4]=[''.join(ticker_col[0:len(ticker_col)-4])]
         writeMongo(data,row,ticker_col)
-    elif (len_ticker<5) and not RepresentsInt(ticker_col[len_ticker-1]):
-        print "cash",
-        if 1<len_ticker:
-            ticker_col[0:len(ticker_col)]=[''.join(ticker_col[0:len(ticker_col)])]
-        writeMongo(data,row,ticker_col)
-
-    elif (3<=len_ticker) and (RepresentsInt(ticker_col[len_ticker-1])):
-        print "future",
-        if 5<len_ticker:
-            for i in range (0,len(ticker_col)):
-                if ticker_col[i]=='.':
-                    ticker_col[i-1:i+2] = [''.join(ticker_col[i-1:i+2])]
-                    if 5<=len(ticker_col):
-                        ticker_col[0:len(ticker_col)-3]=[''.join(ticker_col[0:len(ticker_col)-3])]
-                    break
+    else:
+        ticker_col[0:len(ticker_col)]=[''.join(ticker_col[0:len(ticker_col)])]
         writeMongo(data,row,ticker_col)
     firstRun=False
 # cursor = db.psytest.find()
