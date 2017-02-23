@@ -32,10 +32,10 @@ def insertSid_data(sid=None,date=None,time=None,open=None,high=None,low=None,clo
 
 def insertDatetime_data(sid=None,date=None,time=None,open=None,high=None,low=None,close=None,volume=None,open_interest=None):
     print "inserting Datedata"
-    option_type="ticker."+date
+    update_field="ticker."+date
     db.psytest.update_one({
       "_id": sid
-    },  {"$set": {option_type:{
+    },  {"$set": {update_field:{
                     time:{
                     "high":high,
                     "low":low,
@@ -48,12 +48,12 @@ def insertDatetime_data(sid=None,date=None,time=None,open=None,high=None,low=Non
 
 def updateDatetime_data(sid=None,date=None,time=None,open=None,high=None,low=None,close=None,volume=None,open_interest=None):
     print "updating data"
-    option_type="ticker."+date+"."+time
+    update_field="ticker."+date+"."+time
     db.psytest.update_one(
       {
         "_id":sid
       },
-       { "$set": { option_type: {
+       { "$set": { update_field: {
                "high":high,
                "low":low,
                "close":close,
@@ -82,6 +82,7 @@ def getNextSequence(collection,symbol):
 
 def createSid(ticker):
     sid=None
+    fileYear="2017"
     if (db.symbol_sid.find_one({'symbol':ticker[0]})) is None:
         if "-" in ticker[0]:
             sid=getNextSequence(db.sid_counter,"sid")
@@ -91,7 +92,7 @@ def createSid(ticker):
                 expiry='two'
             elif "I" in ticker[0]:
                 expiry='one'
-            db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0],'expiry':expiry})
+            db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0],'expiry':expiry,'option_type':'future'})
         else:
             sid=getNextSequence(db.sid_counter,"sid")
             db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0]})
@@ -101,7 +102,7 @@ def createSid(ticker):
     if len(ticker)==5:
         print "option",
         sid='50'+str(sid)
-        sid+=(ticker[1]+(str(abbr_to_num[ticker[2].title()])+str(datetime.now().year))+ticker[3])
+        sid+=ticker[1]+(str(abbr_to_num[ticker[2].title()])+fileYear+ticker[3])
         if ticker[4]=='PE':
             sid+='1'
         else:
@@ -113,7 +114,7 @@ def createSid(ticker):
         else:
             sid='30'+str(sid)
             print "cash",
-            sid+=ticker[1]+(str(abbr_to_num[ticker[2].title()]))+str(datetime.now().year)
+            sid+=ticker[1]+(str(abbr_to_num[ticker[2].title()]))+fileYear
     return sid
 
 def writeMongo(data,row,ticker_col):
@@ -146,14 +147,12 @@ def writeMongo(data,row,ticker_col):
             insertSid_data(sid,current_date,current_time,open,high,low,close,volume,open_interest)
 
 csvFile = open('NSEF&O_09012017.csv')
-fileYear="2017"
 csvReader = csv.reader(csvFile)
 data = list(csvReader)
 # sorting data by name
 data=sorted(data, key=lambda x: x[0], reverse=False)
 firstRun=True
-for row in range(257,270):
-    # creating an array of ticker column
+for row in range(0,len(data)):
     ticker_col=["".join(x) for _, x in itertools.groupby(data[row][0], key=str.isdigit)]
     len_ticker=len(ticker_col)
     if ticker_col[len_ticker-1]=='PE' or ticker_col[len_ticker-1]=='CE':
@@ -169,7 +168,3 @@ for row in range(257,270):
         ticker_col[0:len(ticker_col)]=[''.join(ticker_col[0:len(ticker_col)])]
         writeMongo(data,row,ticker_col)
     firstRun=False
-# cursor = db.psytest.find()
-# print cursor[1]['values']
-# for document in cursor:
-#     print(document)
