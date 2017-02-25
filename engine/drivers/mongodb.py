@@ -1,12 +1,7 @@
 import csv
 import itertools
 import calendar
-from itertools import groupby
 from pymongo import MongoClient
-from datetime import datetime
-import string
-import time
-import datetime as dt
 client = MongoClient()
 db = client.test
 
@@ -15,7 +10,7 @@ if db.symbol_sid.find_one({ "_id": { '$exists': True } }) is None:
 
 def insertSid_data(sid=None,date=None,time=None,open=None,high=None,low=None,close=None,volume=None,open_interest=None):
     print "inserting data"
-    result=db.psytest.insert_one({
+    db.psytest.insert_one({
         "_id":sid,
         "ticker":{
             date:{
@@ -92,6 +87,8 @@ def createSid(ticker):
                 expiry='two'
             elif "I" in ticker[0]:
                 expiry='one'
+            else:
+                expiry=None
             db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0],'expiry':expiry,'option_type':'future'})
         else:
             sid=getNextSequence(db.sid_counter,"sid")
@@ -107,7 +104,7 @@ def createSid(ticker):
             sid+='1'
         else:
             sid+='0'
-    elif len(ticker)!=5:
+    elif len(ticker)!=5 and ticker[0]!='ticker':
         if "-" in ticker[0]:
             sid='10'+str(sid)
             print "future",
@@ -132,7 +129,6 @@ def writeMongo(data,row,ticker_col):
     if 1<=row:
         if not firstRun:
             previous_date=(data[row-1][1].replace("/",""))
-            previous_time=(data[row-1][2].replace(":",""))
         if db.psytest.find_one({ "_id":sid}):
             if isDate(current_date,previous_date):
                 insertDatetime_data(sid,current_date,current_time,open,high,low,close,volume,open_interest)
@@ -152,7 +148,7 @@ data = list(csvReader)
 # sorting data by name
 data=sorted(data, key=lambda x: x[0], reverse=False)
 firstRun=True
-for row in range(0,len(data)):
+for row in range(159777,159790):
     ticker_col=["".join(x) for _, x in itertools.groupby(data[row][0], key=str.isdigit)]
     len_ticker=len(ticker_col)
     if ticker_col[len_ticker-1]=='PE' or ticker_col[len_ticker-1]=='CE':
