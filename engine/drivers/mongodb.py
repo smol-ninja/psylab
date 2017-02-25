@@ -3,14 +3,14 @@ import itertools
 import calendar
 from pymongo import MongoClient
 client = MongoClient()
-db = client.test
+db = client.psylab
 
 if db.symbol_sid.find_one({ "_id": { '$exists': True } }) is None:
     db.sid_counter.insert({'_id': "sid", 'seq': 0})
 
 def insertSid_data(sid=None,date=None,time=None,open=None,high=None,low=None,close=None,volume=None,open_interest=None):
     print "inserting data"
-    db.psytest.insert_one({
+    db.ticker.insert_one({
         "_id":sid,
         "ticker":{
             date:{
@@ -28,7 +28,7 @@ def insertSid_data(sid=None,date=None,time=None,open=None,high=None,low=None,clo
 def insertDatetime_data(sid=None,date=None,time=None,open=None,high=None,low=None,close=None,volume=None,open_interest=None):
     print "inserting Datedata"
     update_field="ticker."+date
-    db.psytest.update_one({
+    db.ticker.update_one({
       "_id": sid
     },  {"$set": {update_field:{
                     time:{
@@ -44,7 +44,7 @@ def insertDatetime_data(sid=None,date=None,time=None,open=None,high=None,low=Non
 def updateDatetime_data(sid=None,date=None,time=None,open=None,high=None,low=None,close=None,volume=None,open_interest=None):
     print "updating data"
     update_field="ticker."+date+"."+time
-    db.psytest.update_one(
+    db.ticker.update_one(
       {
         "_id":sid
       },
@@ -127,19 +127,18 @@ def writeMongo(data,row,ticker_col):
     volume=data[row][7]
     open_interest=data[row][8]
     if 1<=row:
-        if not firstRun:
-            previous_date=(data[row-1][1].replace("/",""))
-        if db.psytest.find_one({ "_id":sid}):
+        previous_date=(data[row-1][1].replace("/",""))
+        if db.ticker.find_one({ "_id":sid}):
             if isDate(current_date,previous_date):
                 insertDatetime_data(sid,current_date,current_time,open,high,low,close,volume,open_interest)
             else:
                 updateDatetime_data(sid,current_date,current_time,open,high,low,close,volume,open_interest)
-        elif db.psytest.find_one({ "_id":sid}) is None:
+        elif db.ticker.find_one({ "_id":sid}) is None:
             insertSid_data(sid,current_date,current_time,open,high,low,close,volume,open_interest)
     else:
-        if db.psytest.find_one({ "_id":sid}):
+        if db.ticker.find_one({ "_id":sid}):
             insertDatetime_data(sid,current_date,current_time,open,high,low,close,volume,open_interest)
-        elif db.psytest.find_one({ "_id":sid}) is None:
+        elif db.ticker.find_one({ "_id":sid}) is None:
             insertSid_data(sid,current_date,current_time,open,high,low,close,volume,open_interest)
 
 csvFile = open('NSEF&O_09012017.csv')
@@ -147,8 +146,7 @@ csvReader = csv.reader(csvFile)
 data = list(csvReader)
 # sorting data by name
 data=sorted(data, key=lambda x: x[0], reverse=False)
-firstRun=True
-for row in range(159777,159790):
+for row in range(0,len(data)):
     ticker_col=["".join(x) for _, x in itertools.groupby(data[row][0], key=str.isdigit)]
     len_ticker=len(ticker_col)
     if ticker_col[len_ticker-1]=='PE' or ticker_col[len_ticker-1]=='CE':
@@ -163,4 +161,3 @@ for row in range(159777,159790):
     else:
         ticker_col[0:len(ticker_col)]=[''.join(ticker_col[0:len(ticker_col)])]
         writeMongo(data,row,ticker_col)
-    firstRun=False
