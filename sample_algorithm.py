@@ -1,5 +1,7 @@
 """
 This is a template algorithm to understand the functions
+
+Use psy to hold global variables
 """
 
 from psylab.pipeline import *
@@ -22,8 +24,8 @@ def after_market(psy):
     return
     """
 
-def handle_data(psy):
+def handle_data(psy, factor=1):
     """
-    Called every minute
+    Called every `factor`-minutes
     """
     return
