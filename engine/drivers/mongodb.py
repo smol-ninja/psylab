@@ -3,6 +3,7 @@ import itertools
 import calendar
 import glob
 from pymongo import MongoClient
+
 client = MongoClient()
 db = client.tickdata
 

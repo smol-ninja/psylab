@@ -1,4 +1,4 @@
-from classes import *
-from functions import *
+from classes import Psy
+from functions import sid
 
 psy = Psy()

@@ -28,3 +28,10 @@ def is_valid_security(symbol, securitytype, expiry=None, strikeprice=None, optio
                 raise ValueError('Invalid %s for strikeprice. Expected %s' % (type(strikeprice), DATA_TYPE['strikeprice']))
 
     return True
+
+def fetch_price(security):
+    """
+    Fetches the last traded price for the given security
+    """
+
+    return
