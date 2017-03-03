@@ -4,6 +4,9 @@ import socket
 from engine.live_manager import settings
 
 class Ticker(object):
+    """
+    Class object representing the data feed from nse
+    """
     messageSize = None
     broadcastMessageHeader = None
     reserved1 = None
@@ -56,6 +59,10 @@ class Ticker(object):
         currentOpenInterest = None
 
 class Extractor(object):
+    """
+    Class to decode byte feed from nse.
+    Creates Ticker object.
+    """
     sizeOfBCHeader = 21
     sizeOfOBP = 14
     sizeOfOpenID = 4
@@ -188,6 +195,9 @@ class Extractor(object):
         return oid
 
 def _udp_socket():
+    """
+    Creates UDP socket with exchange for feed
+    """
     mcastGroup = settings.get_mcast_group()
     mcastPort = settings.get_mcast_port()
     localIp = settings.get_localIp()
@@ -211,6 +221,12 @@ def _udp_socket():
     return sock
 
 def fetch(sid, *args):
+    """
+    Fetched feed for a given sid.
+    Usage: fetch(sid, 'price', 'quantity') return 'price', 'quantity'
+    in the same order as args.
+    Returns ticker object if no args provided
+    """
     sock = _udp_socket()
     extractor = Extractor()
     respose = None
@@ -237,10 +253,19 @@ def fetch(sid, *args):
                 return fetch_response
 
 def fetch_price(sid):
+    """
+    Fetches price <type 'float'> for a given sid
+    """
     return fetch(sid, 'price')
 
 def fetch_quantity(sid):
+    """
+    Fetches quantity <type 'int'> for a given sid
+    """
     return fetch(sid, 'quantity')
 
 def fetch_open_interest(sid):
+    """
+    Fetches open-interest <type 'int'> for a given sid
+    """
     return fetch(sid, 'open-interest')
