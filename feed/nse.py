@@ -219,22 +219,22 @@ def fetch(sid, *args):
         extractor.set_buffer(data, 0)
         ticker = extractor.fill_market_picture()
         instrumentId = str(ticker.instrumentIdentifier)
-        response = []
+        fetch_response = []
         if instrumentId == sid:
             if len(args) < 1:
                 return ticker
             else:
                 for index, asked in enumerate(args):
                     if asked == 'price':
-                        respose.append(float(ticker.lastTradedPrice))
+                        fetch_response.append(float(ticker.lastTradedPrice))
                     elif asked == 'quantity':
-                        response.append(int(ticker.lastTradedQuantity))
+                        fetch_response.append(int(ticker.lastTradedQuantity))
                     elif asked == 'open-interest':
-                        response.append(int(ticker.openInterestDetails.currentOpenInterest)))
+                        fetch_response.append(int(ticker.openInterestDetails.currentOpenInterest))
                     else:
-                        response.append(None)
+                        fetch_response.append(None)
 
-                return response
+                return fetch_response
 
 def fetch_price(sid):
     return fetch(sid, 'price')
