@@ -6,11 +6,17 @@ from pymongo import MongoClient
 
 client = MongoClient()
 db = client.tickdata
-
+"""
+Check if symbol_sid collection exists, if not then create
+an autoincrement sid_counter collection
+"""
 if db.symbol_sid.find_one({ "_id": { '$exists': True } }) is None:
     db.sid_counter.insert({'_id': "sid", 'seq': 0})
 
 def insert_sid_data(sid=None,date=None,timeValue=None,openValue=None,highValue=None,lowValue=None,closeValue=None,volume=None,openInterest=None):
+    """
+    Usage: Inserting sid document in ticker collection
+    """
     print "inserting data"
     db.ticker.insert_one({
         "_id":sid,
@@ -30,6 +36,9 @@ def insert_sid_data(sid=None,date=None,timeValue=None,openValue=None,highValue=N
 
 def insert_datetime_data(sid=None,date=None,timeValue=None,openValue=None,highValue=None,lowValue=None,closeValue=None,volume=None,openInterest=None):
     print "inserting Datedata"
+    """
+    Usage: Inserting datetime document or updating sid document in ticker collection
+    """
     update_field="ticker."+date
     db.ticker.update_one({
       "_id": sid
@@ -47,6 +56,10 @@ def insert_datetime_data(sid=None,date=None,timeValue=None,openValue=None,highVa
 
 def update_datetime_data(sid=None,date=None,timeValue=None,openValue=None,highValue=None,lowValue=None,closeValue=None,volume=None,openInterest=None):
     print "updating data"
+    """
+    Usage: Inserting time field or updating datetime document or
+    updating sid document in ticker collection
+    """
     update_field="ticker."+date+"."+timeValue
     db.ticker.update_one(
       {
@@ -62,18 +75,33 @@ def update_datetime_data(sid=None,date=None,timeValue=None,openValue=None,highVa
            }}}
       )
 
+# convert abbreviations to number
 abbr_to_num = {name: num for num, name in enumerate(calendar.month_abbr) if num}
 
 def is_date(dt,previous_dt):
+    """
+    Usage: Return boolean value after date comparison
+    """
     if previous_dt is None or previous_dt!=dt:
         return True
     else:
         return False
 
 def get_next_sequence(collection,symbol):
-   return collection.find_and_modify(query= { '_id': symbol },update= { '$inc': {'seq': 1}}, new=True ).get('seq')
+    """
+    Usage: Return integer value of elemets presents in symbol_sid collection
+    using sid_counter
+    """
+    return collection.find_and_modify(query= { '_id': symbol },update= { '$inc': {'seq': 1}}, new=True ).get('seq')
 
 def create_sid(ticker,fyear):
+    """
+    Usage: Create sid and return
+    If Symbol not exists in symbol_sid collection
+    Get count of symbols in symbol_sid collection
+    using get_next_sequence
+    Check option type and insert into symbol_sid collection
+    """
     if (db.symbol_sid.find_one({'symbol':ticker[0]})) is None:
         if "-" in ticker[0]:
             sid=get_next_sequence(db.sid_counter,"sid")
@@ -107,10 +135,13 @@ def create_sid(ticker,fyear):
         else:
             sid='30'+str(sid)
             print "cash",
-            sid+=ticker[1]+(str(abbr_to_num[ticker[2].title()]))+fileYear
     return sid
 
 def write_mongo(data,row,ticker_col,fyear):
+    """
+    Usage: Write data in MongoDB
+    Create SID using create_sid function
+    """
     sid=create_sid(ticker_col,fyear)
     previous_date=None
     current_date=(data[row][1].replace("/",""))
@@ -137,9 +168,15 @@ def write_mongo(data,row,ticker_col,fyear):
         elif db.ticker.find_one({ "_id":sid}) is None:
             insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
 
-
-path=('/home/manish/Work/jan2016tofeb2017/*.csv')
+path=('/path/to/dir/*.csv')
 for fname in glob.glob(path):
+    """
+    Sort data based on symbol
+    Split ticker column based on integer and string type
+    Check length of a ticker column array
+    Normal check to reconstruct Symbol and valid strike price
+    Call write_mongo function
+    """
     print "file open", (fname)
     csvFile = open(fname)
     fyear=fname[-8:-4]
@@ -149,6 +186,7 @@ for fname in glob.glob(path):
     for row in range(0,len(data)):
         ticker_col=["".join(x) for _, x in itertools.groupby(data[row][0], key=str.isdigit)]
         len_ticker=len(ticker_col)
+
         if ticker_col[len_ticker-1]=='PE' or ticker_col[len_ticker-1]=='CE':
             if 6<len_ticker:
                 for i in range (0,len(ticker_col)):
