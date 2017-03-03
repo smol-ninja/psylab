@@ -2,24 +2,11 @@
 from engine.logger import get_logger
 import json
 import pika
-def msgConsumer():
-    HEARTBEAT_INTERVAL=2
-    conn_params = pika.ConnectionParameters(
-            heartbeat_interval=HEARTBEAT_INTERVAL
-        )
-    connection = pika.BlockingConnection()
-    channel = connection.channel()
-    for method_frame, properties, body in channel.consume('hello'):
-        return body
-    requeued_messages = channel.cancel()
-    print('Requeued %i messages' % requeued_messages)
-    connection.close()
 
-def jsonToObject():
-    while msgConsumer():
-        s=msgConsumer()
-    js=json.loads(s)
-    OrderObject(js.sid,js.side,js.quantity,js.orderType,js.price)
+"""
+call OrderValidation function and return the output to json_to_object function
+"""
+
 class OrderObject(object):
     logger=get_logger(__name__)
     def __init__(self, sid, side, quantity, orderType='limit', stopPrice=None, price=None):
@@ -29,21 +16,14 @@ class OrderObject(object):
         self.orderType = orderType
         self.stopPrice = stopPrice
         self.price = price
-        OrderValidation(self)
-    # def validation(self):
-    #     if self._order_validation() and self._side_validation and self._quantity_validation() and self._sid_validation():
-    #         if self.orderType.lower()=='market':
-    #             self.logger.info('orderType:Market, Order placed)
-    #         else:
-    #             self.price=fetch_price(self.sid)
-    #             return True
-    #     else:
-    #         self.logger.error('Something is wrong')
-    #         return False
-class  OrderValidation(object):
-    def __init__(self,orderObj):
-        self.orderObj=orderObj
-        self.orderObj.validation()
+        self.valid=OrderValidation().validation(self)
+    def get_value(self):
+        return self.valid
+"""
+1. Validate order parameters and return boolean value
+2. Create a log file if something went wrong
+"""
+class OrderValidation(object):
     def _side_validation(self):
         if self.orderObj.side is None:
             self.orderObj.logger.error('Side can not be None')
@@ -78,9 +58,43 @@ class  OrderValidation(object):
             else:
                 self.orderObj.logger.error('Incorrect order type')
                 raise Exception('Incorrect order type')
-    def validation(self):
+    def validation(self,orderObj):
+        self.orderObj=orderObj
         if self._order_validation() and self._side_validation and self._quantity_validation() and self._sid_validation():
+            if self.orderObj.orderType.lower()=='market':
+                self.orderObj.logger.info('orderType:Market, Order placed')
+            else:
+                pass
+                # TODO: fetch_price function
+                # self.price=fetch_price(self.sid)
             return True
         else:
-            self.logger.error('Something is wrong')
             return False
+
+"""
+Get objects from rabbitMQ queue
+"""
+def obj_consumer():
+    HEARTBEAT_INTERVAL=2
+    conn_params = pika.ConnectionParameters(
+            heartbeat_interval=HEARTBEAT_INTERVAL
+        )
+    connection = pika.BlockingConnection(conn_params)
+    channel = connection.channel()
+    for method_frame, properties, body in channel.consume('hello'):
+        json_to_object(body)
+    # Cancel the consumer and return any pending objects
+    requeued_messages = channel.cancel()
+    print('Requeued %i messages' % requeued_messages)
+    connection.close()
+"""
+Decoding json to object
+"""
+def json_to_object(body):
+    js=json.loads(body)
+    orderObj=OrderObject(js["sid"],js["side"],js["quantity"],js["orderType"],js["price"])
+    if orderObj.get_value():
+        print 'write date'
+    else:
+        print 'retry'
+obj_consumer()
