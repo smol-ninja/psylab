@@ -220,7 +220,7 @@ def _udp_socket():
 
     return sock
 
-def fetch(sid, *args):
+def fetch_nse(sid, *args):
     """
     Fetched feed for a given sid.
     Usage: fetch(sid, 'price', 'quantity') return 'price', 'quantity'
@@ -252,20 +252,20 @@ def fetch(sid, *args):
 
                 return fetch_response
 
-def fetch_price(sid):
+def fetch_price_nse(sid):
     """
     Fetches price <type 'float'> for a given sid
     """
-    return fetch(sid, 'price')
+    return fetch_nse(sid, 'price')
 
-def fetch_quantity(sid):
+def fetch_quantity_nse(sid):
     """
     Fetches quantity <type 'int'> for a given sid
     """
-    return fetch(sid, 'quantity')
+    return fetch_nse(sid, 'quantity')
 
-def fetch_open_interest(sid):
+def fetch_open_interest_nse(sid):
     """
     Fetches open-interest <type 'int'> for a given sid
     """
-    return fetch(sid, 'open-interest')
+    return fetch_nse(sid, 'open-interest')

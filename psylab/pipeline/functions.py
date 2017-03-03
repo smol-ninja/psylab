@@ -2,7 +2,13 @@
 Functions supporting pipeline functionality
 """
 
-from engine.constants import *
+from engine.constants import (
+    SECURITY_TYPES,
+    EXPIRY,
+    OPTION_TYPES,
+    DATA_TYPE,
+    )
+from feed.nse import fetch_price_nse, fetch_open_interest_nse, fetch_quantity_nse
 
 def is_valid_security(symbol, securitytype, expiry=None, strikeprice=None, optiontype=None):
     """
@@ -33,5 +39,16 @@ def fetch_price(security):
     """
     Fetches the last traded price for the given security
     """
+    return fetch_price_nse(security)
 
-    return
+def fetch_quantity(security):
+    """
+    Fetches the last traded quantity for the given security
+    """
+    return fetch_quantity_nse(security)
+
+def fetch_open_interest(security):
+    """
+    Fetches the last traded quantity for the given security
+    """
+    return fetch_open_interest_nse(security)
