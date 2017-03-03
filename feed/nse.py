@@ -210,32 +210,37 @@ def _udp_socket():
 
     return sock
 
-def _fetch_data(sid, fetch='price'):
+def fetch(sid, *args):
     sock = _udp_socket()
     extractor = Extractor()
+    respose = None
     while True:
         data, address = sock.recvfrom(8192)
         extractor.set_buffer(data, 0)
         ticker = extractor.fill_market_picture()
         instrumentId = str(ticker.instrumentIdentifier)
+        response = []
         if instrumentId == sid:
-            if fetch == 'price':
-                return float(ticker.lastTradedPrice)
-            elif fetch == 'volume':
-                return int(ticker.lastTradedQuantity)
-            elif fetch == 'open-interest':
-                return int(ticker.openInterestDetails.currentOpenInterest)
-            elif fetch == "object":
+            if len(args) < 1:
                 return ticker
+            else:
+                for index, asked in enumerate(args):
+                    if asked == 'price':
+                        respose.append(float(ticker.lastTradedPrice))
+                    elif asked == 'quantity':
+                        response.append(int(ticker.lastTradedQuantity))
+                    elif asked == 'open-interest':
+                        response.append(int(ticker.openInterestDetails.currentOpenInterest)))
+                    else:
+                        response.append(None)
+
+                return response
 
 def fetch_price(sid):
-    return _fetch_data(sid, 'price')
+    return fetch(sid, 'price')
 
 def fetch_quantity(sid):
-    return _fetch_data(sid, 'volume')
+    return fetch(sid, 'quantity')
 
 def fetch_open_interest(sid):
-    return _fetch_data(sid, 'open-interest')
-
-def fetch_ticker(sid):
-    return _fetch_data(sid, 'object')
+    return fetch(sid, 'open-interest')
