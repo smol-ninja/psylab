@@ -7,7 +7,7 @@ apt-get install rabbitmq-server
 rabbitmq-plugins enable rabbitmq_management
 service rabbitmq-server restart
 # installing puka
-pip install puka
+pip install pika
 
 # if guest credentials not working
 # creating a test user with test password
