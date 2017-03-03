@@ -3,11 +3,10 @@ from engine.logger import get_logger
 import json
 import pika
 
-"""
-call OrderValidation function and return the output to json_to_object function
-"""
-
 class OrderObject(object):
+    """
+    call OrderValidation function and return the output to json_to_object function
+    """
     logger=get_logger(__name__)
     def __init__(self, sid, side, quantity, orderType='limit', stopPrice=None, price=None):
         self.sid = sid
@@ -19,11 +18,11 @@ class OrderObject(object):
         self.valid=OrderValidation().validation(self)
     def get_value(self):
         return self.valid
-"""
-1. Validate order parameters and return boolean value
-2. Create a log file if something went wrong
-"""
 class OrderValidation(object):
+    """
+    1. Validate order parameters and return boolean value
+    2. Create a log file if something went wrong
+    """
     def _side_validation(self):
         if self.orderObj.side is None:
             self.orderObj.logger.error('Side can not be None')
@@ -71,10 +70,11 @@ class OrderValidation(object):
         else:
             return False
 
-"""
-Get objects from rabbitMQ queue
-"""
+
 def obj_consumer():
+    """
+    Usage:Get objects from rabbitMQ queue
+    """
     HEARTBEAT_INTERVAL=2
     conn_params = pika.ConnectionParameters(
             heartbeat_interval=HEARTBEAT_INTERVAL
@@ -83,14 +83,16 @@ def obj_consumer():
     channel = connection.channel()
     for method_frame, properties, body in channel.consume('hello'):
         json_to_object(body)
+        channel.basic_ack(method_frame.delivery_tag)
     # Cancel the consumer and return any pending objects
     requeued_messages = channel.cancel()
     print('Requeued %i messages' % requeued_messages)
     connection.close()
-"""
-Decoding json to object
-"""
+
 def json_to_object(body):
+    """
+    Usage:Decoding json to object
+    """
     js=json.loads(body)
     orderObj=OrderObject(js["sid"],js["side"],js["quantity"],js["orderType"],js["price"])
     if orderObj.get_value():

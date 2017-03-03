@@ -1,12 +1,12 @@
 import pika
-
 HEARTBEAT_INTERVAL=2
 conn_params = pika.ConnectionParameters(
-        heartbeat_interval=HEARTBEAT_INTERVAL
+        heartbeat_interval=HEARTBEAT_INTERVAL,
+        connection_attempts=10000,
+        retry_delay=10
     )
-connection = pika.BlockingConnection()
+connection = pika.BlockingConnection(conn_params)
 channel = connection.channel()
-
 for method_frame, properties, body in channel.consume('hello'):
 
     # Display the message parts and ack the message
