@@ -13,3 +13,6 @@ DATA_TYPE = {
     'strikeprice': float,
     'optiontype': str,
 }
+
+SIDE = ['buy', 'sell']
+ORDER_TYPE = ['market', 'limit']

@@ -1,7 +1,7 @@
 import struct
 import socket
 
-from engine.live_manager import settings
+from engine.order_manager import settings
 
 class Ticker(object):
     """
@@ -223,7 +223,7 @@ def _udp_socket():
 def fetch_nse(sid, *args):
     """
     Fetched feed for a given sid.
-    Usage: fetch(sid, 'price', 'quantity') return 'price', 'quantity'
+    Usage: fetch_nse(sid, 'price', 'quantity') return 'price', 'quantity'
     in the same order as args.
     Returns ticker object if no args provided
     """

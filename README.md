@@ -8,8 +8,33 @@ All portions of this software are Copyright (c) 2017 Imba Enterprises Pvt. Ltd. 
 
 Happy coding!
 
+************************ virtualenv *******************************
+Create a folder env/ in the project directory and then run
+virtualenv .
+inside env/
+
+Activate virtualenv: source env/bin/activate
+Deactivate: deactivate
+
 ************************* Setup Psylab *****************************
 python install/setup.py
 
 ********************* Setting up Mongo DB **************************
 Follow the instruction at https://docs.mongodb.com/master/tutorial/install-mongodb-on-ubuntu/
+
+************************* Setup RabbitMQ *****************************
+sudo apt-get install rabbitmq-server
+
+To enale rabbitmq UI run the following:
+
+rabbitmq-plugins enable rabbitmq_management
+
+if guest credentials not working
+creating a test user with test password
+
+rabbitmqctl add_user test test
+rabbitmqctl set_user_tags test administrator
+rabbitmqctl set_permissions -p / test ".*" ".*" ".*"
+
+********************* Adding psylab to sys.pth ********************
+Create a .pth file in lib/python2.7/site-packages and add /path/to/psylab/ to it

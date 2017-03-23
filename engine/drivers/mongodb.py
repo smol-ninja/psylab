@@ -168,7 +168,8 @@ def write_mongo(data,row,ticker_col,fyear):
         elif db.ticker.find_one({ "_id":sid}) is None:
             insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
 
-path=('/path/to/dir/*.csv')
+path=('/home/shubham/imba/psylab/data/*.csv')
+import pdb; pdb.set_trace()
 for fname in glob.glob(path):
     """
     Sort data based on symbol

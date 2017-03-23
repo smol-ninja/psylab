@@ -1,6 +1,5 @@
 import logging
 from os.path import dirname, realpath, pardir, join
-from datetime import datetime
 
 """Logging Configurations"""
 def get_logger(name):

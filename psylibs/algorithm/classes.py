@@ -2,7 +2,7 @@
 Classes to support algorithms building
 """
 
-class Psy(object):
+class Context(object):
     """
     Class that holds global variables in the algorithm
     """

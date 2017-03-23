@@ -2,7 +2,7 @@ import mysql.connector
 from mysql.connector.pooling import MySQLConnectionPool
 from mysql.connector import errorcode
 
-from engine.live_manager import settings
+from engine.order_manager import settings
 
 class SQLManager(object):
     def __init__(self):

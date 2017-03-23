@@ -46,5 +46,5 @@ if os.path.exists(ZSHRC):
 ###################################################
 
 DEPENDENCIES = PSYLAB_DIR + sep + 'requirements.txt'
-e = "sudo pip install -r %s" % (DEPENDENCIES, )
+e = "pip install -r %s" % (DEPENDENCIES, )
 subprocess.call(e, shell=True)
