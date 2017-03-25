@@ -36,12 +36,7 @@ def strategy_view(request, **kwargs):
 
     elif request.method == 'PUT':
         try:
-            instance = Strategy.objects.get(pk=kwargs['pk'], user=request.user)
-            instance.strategy = request.data['strategy']
-            instance.name = request.data['name']
-            instance.is_active = request.data['is_active']
-            instance.ticker = Ticker.objects.filter(symbol=request.data['ticker'])[0]
-            instance.save()
+            Strategy.objects.filter(pk=kwargs['pk'], user=request.user).update(**request.data)
             return Response(status=200)
         except Exception as e:
             return Response(status=404, data={'error': e.message})

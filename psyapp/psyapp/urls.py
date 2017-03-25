@@ -38,7 +38,7 @@ urlpatterns = [
     url(r'^admin/', psyadmin.urls),
     url(r'^o/', include(oauth2_endpoint_views, namespace='oauth2_provider')),
     url(r'login/$', views.TokenView.as_view(), name="login"),
-    url(r'logout/$', oauth2_views.RevokeTokenView.as_view(), name="logout"),
+    url(r'logout/$', views.RevokeTokenView.as_view(), name="logout"),
     url(r'register/$', views.register, name='register'),
     url(r'^api/', include('api.urls')),
     url(r'^p/', include('processor.urls')),

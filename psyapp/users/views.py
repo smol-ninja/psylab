@@ -7,6 +7,8 @@ from oauth2_provider.views.mixins import OAuthLibMixin
 from oauth2_provider.settings import oauth2_settings
 from rest_framework.views import APIView
 import json
+from django.utils import timezone
+from django.http import HttpResponseRedirect
 
 from .serializers import UserSerializer
 from .models import User
@@ -33,6 +35,15 @@ class TokenView(APIView, CsrfExemptMixin, OAuthLibMixin):
     validator_class = oauth2_settings.OAUTH2_VALIDATOR_CLASS
     oauthlib_backend_class = oauth2_settings.OAUTH2_BACKEND_CLASS
 
+    def issue_new_token(self, request, user, email):
+        url, headers, body, status = self.create_token_response(request)
+        data = json.loads(body)
+        tokenObject = AccessToken.objects.get(token=data['access_token'])
+        tokenObject.user = user
+        tokenObject.save()
+        data['email'] = email
+        return Response(data, status=status, headers=headers)
+
     def post(self, request):
         email = request.POST.get('email')
         try:
@@ -47,19 +58,29 @@ class TokenView(APIView, CsrfExemptMixin, OAuthLibMixin):
                     return Response(status=401, data={'error': 'incorrect password'})
                 userToken = AccessToken.objects.filter(user=user)
                 if userToken:
-                    return Response(data={
-                        'access_token': userToken[0].token,
-                        'token_type': 'Bearer',
-                        "email": userToken[0].user.email,
-                        "scope": userToken[0].scope
-                    }, status=200)
+                    if timezone.now() <= userToken[0].expires:
+                        return Response(data={
+                            'access_token': userToken[0].token,
+                            'token_type': 'Bearer',
+                            "email": userToken[0].user.email,
+                            "scope": userToken[0].scope
+                        }, status=200)
+                    else:
+                        AccessToken.delete(userToken[0])
+                        return self.issue_new_token(request, user, email)
                 else:
-                    url, headers, body, status = self.create_token_response(request)
-                    data = json.loads(body)
-                    tokenObject = AccessToken.objects.get(token=data['access_token'])
-                    tokenObject.user = user
-                    tokenObject.save()
-                    data['email'] = email
-                    return Response(data, status=status, headers=headers)
+                    return self.issue_new_token(request, user, email)
         except Exception as e:
             return Response(status=404, data={'error': e.message})
+
+class RevokeTokenView(CsrfExemptMixin, OAuthLibMixin, APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    server_class = oauth2_settings.OAUTH2_SERVER_CLASS
+    validator_class = oauth2_settings.OAUTH2_VALIDATOR_CLASS
+    oauthlib_backend_class = oauth2_settings.OAUTH2_BACKEND_CLASS
+
+    def post(self, request):
+        token = AccessToken.objects.get(user=request.user)
+        AccessToken.delete(token)
+        return Response(status=200)

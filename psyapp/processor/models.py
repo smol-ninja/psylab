@@ -11,6 +11,7 @@ class Ticker(models.Model):
     )
     symbol = models.CharField(max_length=20, primary_key=True)
     exchange = models.CharField(max_length=6, choices=EXCHANGE_CHOICES, default=NSE)
+    uin = models.CharField(max_length=20, unique=True, blank=True)
 
     def __unicode__(self):
         return self.symbol
@@ -25,3 +26,13 @@ class Strategy(models.Model):
 
     class Meta:
         verbose_name_plural = 'Strategies'
+
+class Indicators(models.Model):
+    abbreviation = models.CharField(max_length=10, blank=True, null=False, unique=True)
+    name = models.CharField(max_length=50, blank=True, null=False, unique=True)
+
+    class Meta:
+        verbose_name_plural = 'Indicators'
+
+    def __unicode__(self):
+        return self.abbreviation
