@@ -41,5 +41,4 @@ urlpatterns = [
     url(r'logout/$', views.RevokeTokenView.as_view(), name="logout"),
     url(r'register/$', views.register, name='register'),
     url(r'^api/', include('api.urls')),
-    url(r'^p/', include('processor.urls')),
 ]

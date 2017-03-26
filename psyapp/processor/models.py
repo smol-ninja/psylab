@@ -21,6 +21,7 @@ class Strategy(models.Model):
     name = models.CharField(max_length=30, blank=True, null=False)
     strategy = models.CharField(max_length=999, blank=True, null=True)
     ticker = models.ForeignKey(Ticker, on_delete=models.CASCADE, null=True)
+    shares = models.PositiveIntegerField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=False)
 

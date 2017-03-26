@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import permissions
 from rest_framework.response import Response
 
-from .serializers import StrategySerializer
+from .serializers import StrategySerializer, TickerSerializer
 from .models import Strategy, Ticker
 
 # Create your views here.l
@@ -24,7 +24,8 @@ def strategy_view(request, **kwargs):
                 name=request.data['name'],
                 user=request.user,
                 strategy=request.data['strategy'],
-                ticker=ticker
+                ticker=ticker,
+                shares=request.data['shares']
             )
         strategySerializer = StrategySerializer(instance=strategy)
         return Response(status=200, data=strategySerializer.data)
@@ -48,3 +49,11 @@ def strategy_view(request, **kwargs):
             return Response(status=200)
         except Exception as e:
             return Response(status=404, data={'error': e.message})
+
+@api_view(['GET'])
+@login_required()
+def ticker_view(request):
+    if request.method == 'GET':
+        ticker_lists = Ticker.objects.all()
+        ts = TickerSerializer(ticker_lists, many=True)
+        return Response(status=200, data=ts.data)

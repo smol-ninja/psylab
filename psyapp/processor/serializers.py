@@ -13,4 +13,4 @@ class StrategySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Strategy
-        fields = ('pk', 'strategy', 'ticker', 'is_active', 'name')
+        fields = ('pk', 'strategy', 'ticker', 'shares', 'is_active', 'name')

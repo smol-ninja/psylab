@@ -4,4 +4,5 @@ import users
 
 urlpatterns = [
     url(r'^users/', include('users.urls')),
+    url(r'^p/', include('processor.urls')),
 ]
