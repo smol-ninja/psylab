@@ -14,7 +14,7 @@ def update_symbols(request):
         for line in lines:
             tokens = line.split(',')
             if tokens[2] == 'EQ':
-                Ticker.objects.create(symbol=tokens[0], uin=tokens[6])
+                Ticker.objects.update_or_create(symbol=tokens[0], uin=tokens[6])
     f.close()
     return HttpResponseRedirect(request.META["HTTP_REFERER"])
 
