@@ -3,8 +3,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import permissions
 from rest_framework.response import Response
 
-from .serializers import StrategySerializer, TickerSerializer
-from .models import Strategy, Ticker
+from .serializers import StrategySerializer, TickerSerializer, IndicatorsSerializer
+from .models import Strategy, Ticker, Indicators
 
 # Create your views here.l
 @api_view(['POST', 'GET', 'PUT', 'DELETE'])
@@ -57,3 +57,11 @@ def ticker_view(request):
         ticker_lists = Ticker.objects.all()
         ts = TickerSerializer(ticker_lists, many=True)
         return Response(status=200, data=ts.data)
+
+@api_view(['GET'])
+@login_required()
+def indicator_view(request):
+    if request.method == 'GET':
+        indicators_list = Indicators.objects.all()
+        il = IndicatorsSerializer(indicators_list, many=True)
+        return Response(status=200, data=il.data)

@@ -38,7 +38,10 @@ class TokenView(APIView, CsrfExemptMixin, OAuthLibMixin):
     def issue_new_token(self, request, user, email):
         url, headers, body, status = self.create_token_response(request)
         data = json.loads(body)
-        tokenObject = AccessToken.objects.get(token=data['access_token'])
+        try:
+            tokenObject = AccessToken.objects.get(token=data['access_token'])
+        except:
+            return Response(data=body, status=401)
         tokenObject.user = user
         tokenObject.save()
         data['email'] = email
@@ -53,6 +56,8 @@ class TokenView(APIView, CsrfExemptMixin, OAuthLibMixin):
             return Response(data={'error': e.message}, status=400)
         try:
             user = User.objects.get(email=email)
+            if user.is_active == False:
+                return Response(status=404, data={'error': 'user deactivated'})
             if user:
                 if not user.check_password(request.POST.get('password')):
                     return Response(status=401, data={'error': 'incorrect password'})

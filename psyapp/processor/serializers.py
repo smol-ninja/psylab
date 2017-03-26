@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Strategy, Ticker
+from .models import Strategy, Ticker, Indicators, Backtests
 from users.serializers import UserSerializer
 
 class TickerSerializer(serializers.ModelSerializer):
@@ -13,4 +13,14 @@ class StrategySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Strategy
-        fields = ('pk', 'strategy', 'ticker', 'shares', 'is_active', 'name')
+        fields = ('pk', 'strategy', 'ticker', 'shares', 'trade_frequency', 'is_active', 'name')
+
+class IndicatorsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Indicators
+        fields = ('abbreviation', 'name')
+
+class BacktestsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Backtests
+        fields = ('buid', 'strategy_id', 'ticker', 'trade_frequency', 'shares', 'pnl', 'volatility', 'sharpe_ratio', 'sortino_ratio', 'max_drawdown', 'winning_rate', 'losing_rate', 'start', 'end')

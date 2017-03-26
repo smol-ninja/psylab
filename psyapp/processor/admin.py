@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect
 from django.conf.urls import include, url
 from django.contrib.admin.views.decorators import staff_member_required
 
-from .models import Ticker, Strategy, Indicators
+from .models import Ticker, Strategy, Indicators, Backtests
 
 # View to update symbols
 @staff_member_required
@@ -20,8 +20,8 @@ def update_symbols(request):
 
 # Register your models here.
 class StrategyAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name', 'strategy', 'ticker', 'shares', 'user', 'is_active', 'created')
-    list_filter = ('is_active', )
+    list_display = ('pk', 'name', 'strategy', 'ticker', 'shares', 'trade_frequency', 'user', 'is_active', 'updated')
+    list_filter = ('is_active', 'trade_frequency')
     search_fields = ['ticker__symbol']
 
 class TickerAdmin(admin.ModelAdmin):
@@ -40,6 +40,10 @@ class IndicatorsAdmin(admin.ModelAdmin):
     list_display = ('abbreviation', 'name')
     search_fields = ['abbreviation']
 
+class BacktestsAdmin(admin.ModelAdmin):
+    list_display = ('buid', 'strategy_id', 'strategy', 'ticker', 'trade_frequency', 'shares', 'pnl', 'volatility', 'sharpe_ratio', 'sortino_ratio', 'max_drawdown', 'winning_rate', 'losing_rate', 'start', 'end', 'created')
+
 admin.site.register(Strategy, StrategyAdmin)
 admin.site.register(Ticker, TickerAdmin)
 admin.site.register(Indicators, IndicatorsAdmin)
+admin.site.register(Backtests, BacktestsAdmin)
