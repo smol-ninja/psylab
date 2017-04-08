@@ -25,7 +25,8 @@ def strategy_view(request, **kwargs):
                 user=request.user,
                 strategy=request.data['strategy'],
                 ticker=ticker,
-                shares=request.data['shares']
+                shares=request.data['shares'],
+                trade_frequency=request.data['trade_frequency']
             )
         strategySerializer = StrategySerializer(instance=strategy)
         return Response(status=200, data=strategySerializer.data)
@@ -51,7 +52,7 @@ def strategy_view(request, **kwargs):
             return Response(status=404, data={'error': e.message})
 
 @api_view(['GET'])
-@login_required()
+@permission_classes([permissions.AllowAny])
 def ticker_view(request):
     if request.method == 'GET':
         ticker_lists = Ticker.objects.all()
@@ -59,9 +60,14 @@ def ticker_view(request):
         return Response(status=200, data=ts.data)
 
 @api_view(['GET'])
-@login_required()
+@permission_classes([permissions.AllowAny])
 def indicator_view(request):
     if request.method == 'GET':
         indicators_list = Indicators.objects.all()
         il = IndicatorsSerializer(indicators_list, many=True)
         return Response(status=200, data=il.data)
+
+@api_view(['POST'])
+@login_required
+def backtest_view(request):
+    pass

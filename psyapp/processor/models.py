@@ -1,8 +1,11 @@
 from __future__ import unicode_literals
 from django.db import models
 from django.core.validators import RegexValidator
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from users.models import User
+from slp import slprocessor
 
 # Create your models here.
 DAY = 'daily'
@@ -34,6 +37,7 @@ class Strategy(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=30, blank=True, null=False)
     strategy = models.CharField(max_length=999, blank=True, null=True)
+    decoded_strategy = models.CharField(max_length=999, blank=True, null=True)
     ticker = models.ForeignKey(Ticker, on_delete=models.CASCADE, null=True)
     trade_frequency = models.CharField(max_length=10, choices=TRADE_FREQUENCY_CHOICES, default=DAY)
     shares = models.PositiveIntegerField(null=True, blank=True)
@@ -46,6 +50,12 @@ class Strategy(models.Model):
 
     def __unicode__(self):
         return self.name
+
+@receiver(post_save, sender=Strategy)
+def strategy_nlp(sender, instance, **kwargs):
+    decoded_strategy = slprocessor(instance.strategy)
+    instance.decoded_strategy = decoded_strategy
+    instance.save()
 
 class Indicators(models.Model):
     abbreviation = models.CharField(max_length=10, blank=True, null=False, unique=True)

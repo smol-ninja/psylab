@@ -168,8 +168,7 @@ def write_mongo(data,row,ticker_col,fyear):
         elif db.ticker.find_one({ "_id":sid}) is None:
             insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
 
-path=('/home/shubham/imba/psylab/data/*.csv')
-import pdb; pdb.set_trace()
+path=('backdata/*.csv')
 for fname in glob.glob(path):
     """
     Sort data based on symbol
@@ -185,18 +184,20 @@ for fname in glob.glob(path):
     data = list(csvReader)
     data=sorted(data, key=lambda x: x[0], reverse=False)
     for row in range(0,len(data)):
+        import pdb; pdb.set_trace()
         ticker_col=["".join(x) for _, x in itertools.groupby(data[row][0], key=str.isdigit)]
         len_ticker=len(ticker_col)
 
         if ticker_col[len_ticker-1]=='PE' or ticker_col[len_ticker-1]=='CE':
-            if 6<len_ticker:
-                for i in range (0,len(ticker_col)):
-                    if ticker_col[i]=='.':
-                        ticker_col[i-1:i+2] = [''.join(ticker_col[i-1:i+2])]
-                        break
-                if 6<=len(ticker_col):
-                    ticker_col[0:len(ticker_col)-4]=[''.join(ticker_col[0:len(ticker_col)-4])]
-            write_mongo(data,row,ticker_col,fyear)
+            # if 6<len_ticker:
+            #     for i in range (0,len(ticker_col)):
+            #         if ticker_col[i]=='.':
+            #             ticker_col[i-1:i+2] = [''.join(ticker_col[i-1:i+2])]
+            #             break
+            #     if 6<=len(ticker_col):
+            #         ticker_col[0:len(ticker_col)-4]=[''.join(ticker_col[0:len(ticker_col)-4])]
+            # write_mongo(data,row,ticker_col,fyear)
+            pass
         else:
             ticker_col[0:len(ticker_col)]=[''.join(ticker_col[0:len(ticker_col)])]
             write_mongo(data,row,ticker_col,fyear)

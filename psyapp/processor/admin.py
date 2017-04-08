@@ -20,7 +20,7 @@ def update_symbols(request):
 
 # Register your models here.
 class StrategyAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name', 'strategy', 'ticker', 'shares', 'trade_frequency', 'user', 'is_active', 'updated')
+    list_display = ('pk', 'name', 'strategy', 'decoded_strategy', 'ticker', 'shares', 'trade_frequency', 'user', 'is_active', 'updated')
     list_filter = ('is_active', 'trade_frequency')
     search_fields = ['ticker__symbol']
 

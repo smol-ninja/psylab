@@ -13,7 +13,7 @@ class StrategySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Strategy
-        fields = ('pk', 'strategy', 'ticker', 'shares', 'trade_frequency', 'is_active', 'name')
+        fields = ('pk', 'strategy', 'ticker', 'shares', 'trade_frequency', 'is_active', 'name', 'updated')
 
 class IndicatorsSerializer(serializers.ModelSerializer):
     class Meta:
