@@ -21,7 +21,7 @@ def insert_sid_data(sid=None,date=None,timeValue=None,openValue=None,highValue=N
     db.ticker.insert_one({
         "_id":sid,
         "ticker":{
-            date:{
+            zzzdate:{
                     timeValue:{
                     "openValue":openValue,
                    "highValue":highValue,
