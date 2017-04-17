@@ -21,7 +21,7 @@ def insert_sid_data(sid=None,date=None,timeValue=None,openValue=None,highValue=N
     db.ticker.insert_one({
         "_id":sid,
         "ticker":{
-            zzzdate:{
+            date:{
                     timeValue:{
                     "openValue":openValue,
                    "highValue":highValue,
@@ -168,7 +168,7 @@ def write_mongo(data,row,ticker_col,fyear):
         elif db.ticker.find_one({ "_id":sid}) is None:
             insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
 
-path=('backdata/*.csv')
+path=('/home/man15h/Work/Repos/psylab/engine/drivers/*.csv')
 for fname in glob.glob(path):
     """
     Sort data based on symbol
@@ -183,8 +183,8 @@ for fname in glob.glob(path):
     csvReader = csv.reader(csvFile)
     data = list(csvReader)
     data=sorted(data, key=lambda x: x[0], reverse=False)
-    for row in range(0,len(data)):
-        import pdb; pdb.set_trace()
+    for row in range(0,700):
+        # import pdb; pdb.set_trace()
         ticker_col=["".join(x) for _, x in itertools.groupby(data[row][0], key=str.isdigit)]
         len_ticker=len(ticker_col)
 
