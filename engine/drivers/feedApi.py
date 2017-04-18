@@ -12,19 +12,28 @@ def fetch_price(secid, datetime, frequency):
         timeValue=str(d.strftime('%H%M%S'))
         if timeValue[0]=='0':
             timeValue=timeValue[1:]
-        obj=cursor['ticker'][dateValue][timeValue]
-        return obj['closeValue']
+        try:
+            obj=cursor['ticker'][dateValue][timeValue]
+            return obj['closeValue']
+        except Exception as e:
+            print 'error', str(e)
     elif frequency=='daily':
         timeValue='152959'
-        obj=cursor['ticker'][dateValue][timeValue]
-        return obj['closeValue']
+        try:
+            obj=cursor['ticker'][dateValue][timeValue]
+            return obj['closeValue']
+        except Exception as e:
+            print 'error', str(e)
     elif frequency=='hourly':
         timeValue=str(d.strftime('%H'))
         if timeValue[0]=='0':
             timeValue=timeValue[1:]
         timeValue=timeValue+'1559'
-        obj=cursor['ticker'][dateValue][timeValue]
-        return obj['closeValue']
+        try:
+            obj=cursor['ticker'][dateValue][timeValue]
+            return obj['closeValue']
+        except Exception as e:
+            print 'error', str(e)
     # TODO: weekly condition
     # else:
     #     day=d.strptime(dateValue, '%d%m%Y').strftime('%A')
@@ -36,27 +45,45 @@ def fetch_data(secid, datetime, type="closeValue"):
     timeValue=str(d.strftime('%H%M%S'))
     if timeValue[0]=='0':
         timeValue=timeValue[1:]
-    obj=cursor['ticker'][dateValue][timeValue]
-    return obj[type]
+    try:
+        obj=cursor['ticker'][dateValue][timeValue]
+        return obj[type]
+    except Exception as e:
+        print 'error', str(e)
 def fetch_price_list(secId, datefrom, dateto, frequency):
     secid=str(secId)
     cursor=db.ticker.find_one({"_id":secid})
     obj=cursor['ticker']
+    hourArr=['91559','101559','111559','121559','131559','141559','151559']
     dFrom=dateutil.parser.parse(datefrom)
     dTo=dateutil.parser.parse(dateto)
-    d = dFrom
     delta = datetime.timedelta(days=1)
     dateArr=[]
-    while d <= dTo:
-        dateArr.append(str(d.strftime("%d%m%Y")))
-        d += delta
+    while dFrom <= dTo:
+        dateArr.append(str(dFrom.strftime("%d%m%Y")))
+        dFrom += delta
     if frequency=='minute':
-        newdict = {key:obj[key] for key in dateArr}
-        return newdict
-    elif frequency=="daily":
-        newdict = {key:obj[key]['153059'] for key in dateArr}
-        return newdict
-    
-vakue=fetch_price_list('101','2017-01-09','2017-01-09','minute')
-for key, value in vakue.iteritems():
-    print key, value
+        try:
+            newdict = {key:obj[key] for key in dateArr}
+            return newdict
+        except Exception as e:
+            print 'error', str(e)
+    elif frequency=='daily':
+        try:
+            newdict = {key:obj[key]['153059'] for key in dateArr}
+            return newdict
+        except Exception as e:
+            print 'error', str(e)
+    elif frequency=='hourly':
+        overdict={}
+        for key in dateArr:
+            timedict={}
+            for hour in hourArr:
+                try:
+                    timedict[hour]=obj[key][hour]
+                except Exception as e:
+                    print 'error', str(e)
+            overdict[key]=timedict
+        return overdict
+    # TODO: weekly
+print fetch_price_list('101','2017-01-09','2017-01-09','hourly')
