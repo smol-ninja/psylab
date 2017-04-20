@@ -16,14 +16,14 @@ def fetch_price(secid, datetime, frequency):
             obj=cursor['ticker'][dateValue][timeValue]
             return obj['closeValue']
         except Exception as e:
-            print 'error', str(e)
+            pass
     elif frequency=='daily':
         timeValue='152959'
         try:
             obj=cursor['ticker'][dateValue][timeValue]
             return obj['closeValue']
         except Exception as e:
-            print 'error', str(e)
+            pass
     elif frequency=='hourly':
         timeValue=str(d.strftime('%H'))
         if timeValue[0]=='0':
@@ -33,7 +33,7 @@ def fetch_price(secid, datetime, frequency):
             obj=cursor['ticker'][dateValue][timeValue]
             return obj['closeValue']
         except Exception as e:
-            print 'error', str(e)
+            pass
     # TODO: weekly condition
     # else:
     #     day=d.strptime(dateValue, '%d%m%Y').strftime('%A')
@@ -49,7 +49,7 @@ def fetch_data(secid, datetime, type="closeValue"):
         obj=cursor['ticker'][dateValue][timeValue]
         return obj[type]
     except Exception as e:
-        print 'error', str(e)
+        pass
 def fetch_price_list(secId, datefrom, dateto, frequency):
     secid=str(secId)
     cursor=db.ticker.find_one({"_id":secid})
@@ -67,13 +67,13 @@ def fetch_price_list(secId, datefrom, dateto, frequency):
             newdict = {key:obj[key] for key in dateArr}
             return newdict
         except Exception as e:
-            print 'error', str(e)
+            pass
     elif frequency=='daily':
         try:
             newdict = {key:obj[key]['153059'] for key in dateArr}
             return newdict
         except Exception as e:
-            print 'error', str(e)
+            pass
     elif frequency=='hourly':
         overdict={}
         for key in dateArr:
@@ -82,8 +82,8 @@ def fetch_price_list(secId, datefrom, dateto, frequency):
                 try:
                     timedict[hour]=obj[key][hour]
                 except Exception as e:
-                    print 'error', str(e)
+                    pass
             overdict[key]=timedict
         return overdict
     # TODO: weekly
-print fetch_price_list('101','2017-01-09','2017-01-09','hourly')
+print fetch_price_list('101','2014-09-01','2014-09-10','hourly')
