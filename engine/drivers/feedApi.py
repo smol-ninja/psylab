@@ -16,43 +16,61 @@ def fetch_price(secid, datetime, frequency):
 	case 3: freq = hourly, fetch price during that hour at closing. Example, 9:15, 10:15, 11:15
 	case 4: freq = weekly, fetch price on every monday at 15:30
     """
-    d=dateutil.parser.parse(datetime)
-    if frequency=='minute':
-        return fetch_data(secid,datetime,"closeValue")
-    elif frequency=='daily':
-        timeValue=d.replace(hour=15, minute=29,second=59).strftime('%Y-%m-%dT%H:%M:%S')
-        return fetch_data(secid,timeValue,"closeValue")
-    elif frequency=='hourly':
-        timeValue=d.replace(minute=15,second=59).strftime('%Y-%m-%dT%H:%M:%S')
-        return fetch_data(secid,timeValue,"closeValue")
-
-
-    # TODO: weekly condition
-    # else:
-    #     day=d.strptime(dateValue, '%d%m%Y').strftime('%A')
-def fetch_data(secid, datetime, objectType="closeValue"):
+    return fetch_data(secid, datetime, frequency,'closeValue')
+def fetch_data(secid, datetime, frequency, objectType="closeValue"):
     """
 	a generalized fucntion which can take "close_price"
 	"open_price", "quantity", "open-interest" as type values.
 	By default type="close_price"
     dateformat: "YYYY-MM-DDTHH:MM:SS"
     """
-    d=dateutil.parser.parse(datetime)
+    d = dateutil.parser.parse(datetime)
     secid=str(secid)
     dateValue=str(d.strftime('%d%m%Y'))
     cursor=db.ticker.find_one({"_id":secid})
-    timeValue=str(d.strftime('%H%M%S'))
-    if timeValue[0]=='0':
-        timeValue=timeValue[1:]
-    try:
-        obj=cursor['ticker'][dateValue][timeValue]
-        return obj[objectType]
-    except Exception as e:
-        print 'error', str(e)
+    if frequency=='minute':
+        timeValue=str(d.strftime('%H%M%S'))
+        if timeValue[0]=='0':
+            timeValue=timeValue[1:]
+        try:
+            obj=cursor['ticker'][dateValue][timeValue]
+            return obj['closeValue']
+        except Exception as e:
+            print 'error', str(e)
+    elif frequency=='daily':
+        timeValue='152959'
+        try:
+            obj=cursor['ticker'][dateValue][timeValue]
+            return obj['closeValue']
+        except Exception as e:
+            print 'error', str(e)
+    elif frequency=='hourly':
+        timeValue=str(d.strftime('%H'))
+        if timeValue[0]=='0':
+            timeValue=timeValue[1:]
+        timeValue=timeValue+'1559'
+        try:
+            obj=cursor['ticker'][dateValue][timeValue]
+            return obj['closeValue']
+        except Exception as e:
+            print 'error', str(e)
+    # TODO: weekly
 def fetch_price_list(secId, datefrom, dateto, frequency):
+    """
+    a generalized fucntion which return all the close price
+    from-to period
+    dateformat: "YYYY-MM-DD"
+    """
     return fetch_data_list(secId, datefrom, dateto, frequency,'closeValue')
 
 def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
+    """
+	a generalized fucntion which can take "close_price"
+	"open_price", "quantity", "open-interest" as type values.
+	By default type="close_price"
+    dateformat: "YYYY-MM-DD"
+    return: return list of values during from-to period
+	"""
     secid=str(secId)
     cursor=db.ticker.find_one({"_id":secid})
     obj=cursor['ticker']
