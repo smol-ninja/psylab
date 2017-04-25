@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from pymongo import MongoClient
 import datetime, dateutil.parser
 
@@ -115,5 +117,8 @@ def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
                     print 'error', str(e)
             overdict[key]=timedict
         return overdict
-print fetch_price_list('101','2014-09-03','2014-12-04','minute')
+# print fetch_price('101','2014-09-03T12:15:59','minute') ---> (1479.3)
+# print fetch_data('101','2014-09-03T12:15:59','daily','closeValue') ---> (1467)
+# print fetch_price_list('101','2014-09-03','2014-12-04','minute') ---> {'23092014': {u'94359': u'1714', u'113459': u'1720', u'150259': u'1689.45'}}
+# print fetch_data_list('101','2014-09-03','2014-12-04','hourly','openValue') ---> {'23092014': {'141559': u'1680.55', '131559': u'1700', '121559': u'1714.8'}}
 # print("--- %s seconds ---" % (time.time() - start_time))
