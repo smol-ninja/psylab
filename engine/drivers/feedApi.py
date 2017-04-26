@@ -32,8 +32,6 @@ def fetch_data(secid, datetime, frequency, objectType="closeValue"):
     cursor=db.ticker.find_one({"_id":secid})
     if frequency=='minute':
         timeValue=str(d.strftime('%H%M%S'))
-        if timeValue[0]=='0':
-            timeValue=timeValue[1:]
         try:
             obj=cursor['ticker'][dateValue][timeValue]
             return obj['closeValue']
@@ -48,8 +46,6 @@ def fetch_data(secid, datetime, frequency, objectType="closeValue"):
             print 'error', str(e)
     elif frequency=='hourly':
         timeValue=str(d.strftime('%H'))
-        if timeValue[0]=='0':
-            timeValue=timeValue[1:]
         timeValue=timeValue+'1559'
         try:
             obj=cursor['ticker'][dateValue][timeValue]
@@ -76,7 +72,7 @@ def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
     secid=str(secId)
     cursor=db.ticker.find_one({"_id":secid})
     obj=cursor['ticker']
-    hourArr=['91559','101559','111559','121559','131559','141559','151559']
+    hourArr=['091559','101559','111559','121559','131559','141559','151559']
     dFrom=dateutil.parser.parse(datefrom)
     dTo=dateutil.parser.parse(dateto)
     delta = datetime.timedelta(days=1)
@@ -85,40 +81,43 @@ def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
         dateArr.append(str(dFrom.strftime("%d%m%Y")))
         dFrom += delta
     if frequency=='minute':
-        newdict={}
+        arr=[]
         for key in dateArr:
-            datedict={}
+            dateArr=[]
             try:
-                for timekey in obj[key]:
+                sortedKey=sorted(obj[key])
+                for timekey in sortedKey:
                     try:
-                        datedict[timekey]=obj[key][timekey][objectType]
+                        dateArr.append(obj[key][timekey][objectType])
                     except Exception as e:
                         print 'error', str(e)
             except Exception as e:
                 print 'error', str(e)
-            newdict[key]=datedict
-        return newdict
+            if len(dateArr):
+                arr.append(dateArr)
+        return arr
     elif frequency=='daily':
-        newdict={}
+        arr=[]
         for key in dateArr:
             try:
-                newdict[key]=obj[key]['152959'][objectType]
+                arr.append(obj[key]['152959'][objectType])
             except Exception as e:
                 print 'error', str(e)
-        return newdict
+        return arr
     elif frequency=='hourly':
-        overdict={}
+        arr=[]
         for key in dateArr:
-            timedict={}
+            timeArr=[]
             for hour in hourArr:
                 try:
-                    timedict[hour]=obj[key][hour][objectType]
+                    timeArr.append(obj[key][hour][objectType])
                 except Exception as e:
                     print 'error', str(e)
-            overdict[key]=timedict
-        return overdict
-# print fetch_price('101','2014-09-03T12:15:59','minute') ---> (1479.3)
-# print fetch_data('101','2014-09-03T12:15:59','daily','closeValue') ---> (1467)
-# print fetch_price_list('101','2014-09-03','2014-12-04','minute') ---> {'23092014': {u'94359': u'1714', u'113459': u'1720', u'150259': u'1689.45'}}
-# print fetch_data_list('101','2014-09-03','2014-12-04','hourly','openValue') ---> {'23092014': {'141559': u'1680.55', '131559': u'1700', '121559': u'1714.8'}}
+            if len(timeArr):
+                arr.append(timeArr)
+        return arr
+# print fetch_price('101','2014-09-03T12:15:59','minute') ---> 1479.3
+# print fetch_data('101','2014-09-03T12:15:59','daily','closeValue') ---> 1467
+# print fetch_price_list('101','2014-09-03','2014-12-04','minute') ---> [u'1727.45', u'1694.2', u'1667.4', u'1688.85', u'1688', u'1660'],[u'1667.4', u'1688.85', u'1688'],...]
+# print fetch_data_list('101','2014-09-25','2014-09-26','hourly') ---> [[u'1727.45', u'1694.2', u'1667.4', u'1688.85', u'1688', u'1660'],[u'1667.4', u'1688.85', u'1688'],...]
 # print("--- %s seconds ---" % (time.time() - start_time))
