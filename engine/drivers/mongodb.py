@@ -146,6 +146,8 @@ def write_mongo(data,row,ticker_col,fyear):
     previous_date=None
     current_date=(data[row][1].replace("/",""))
     current_time=(data[row][2].replace(":",""))
+    if current_time[0]=='9':
+        current_time='0'+current_time
     print data[row]
     openValue=data[row][3]
     highValue=data[row][4]
@@ -167,7 +169,6 @@ def write_mongo(data,row,ticker_col,fyear):
             insert_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
         elif db.ticker.find_one({ "_id":sid}) is None:
             insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
-
 path=('backdata/*.csv')
 for fname in glob.glob(path):
     """
@@ -184,7 +185,7 @@ for fname in glob.glob(path):
     data = list(csvReader)
     data=sorted(data, key=lambda x: x[0], reverse=False)
     for row in range(0,len(data)):
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         ticker_col=["".join(x) for _, x in itertools.groupby(data[row][0], key=str.isdigit)]
         len_ticker=len(ticker_col)
 
