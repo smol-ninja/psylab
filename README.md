@@ -38,3 +38,10 @@ rabbitmqctl set_permissions -p / test ".*" ".*" ".*"
 
 ********************* Adding psylab to sys.pth ********************
 Create a .pth file in lib/python2.7/site-packages and add /path/to/psylab/ to it
+
+********************* Installing TA-Lib ***************************
+$ untar ta-lib-0.4.0-src.tar.gz ans cd
+$ ./configure --prefix=/usr
+$ make
+$ sudo make install
+$ (env) pip install TA-Lib

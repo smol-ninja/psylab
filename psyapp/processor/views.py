@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from .serializers import StrategySerializer, TickerSerializer, IndicatorsSerializer
 from .models import Strategy, Ticker, Indicators
+from slp import NLPService
 
 # Create your views here.l
 @api_view(['POST', 'GET', 'PUT', 'DELETE'])
@@ -24,8 +25,11 @@ def strategy_view(request, **kwargs):
                 name=request.data['name'],
                 user=request.user,
                 strategy=request.data['strategy'],
+                decoded_strategy=NLPService(request.data['strategy']),
                 ticker=ticker,
                 shares=request.data['shares'],
+                stop_loss=request.data['stop_loss'],
+                profit_booking=request.data['profit_booking'],
                 trade_frequency=request.data['trade_frequency']
             )
         strategySerializer = StrategySerializer(instance=strategy)
@@ -70,4 +74,5 @@ def indicator_view(request):
 @api_view(['POST'])
 @login_required
 def backtest_view(request):
-    pass
+    if request.method == 'POST':
+        pass

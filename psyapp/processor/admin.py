@@ -20,7 +20,7 @@ def update_symbols(request):
 
 # Register your models here.
 class StrategyAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name', 'strategy', 'decoded_strategy', 'ticker', 'shares', 'trade_frequency', 'user', 'is_active', 'updated')
+    list_display = ('pk', 'name', 'strategy', 'decoded_strategy', 'ticker', 'shares', 'trade_frequency', 'stop_loss', 'profit_booking', 'user', 'is_active', 'updated')
     list_filter = ('is_active', 'trade_frequency')
     search_fields = ['ticker__symbol']
 
@@ -41,7 +41,7 @@ class IndicatorsAdmin(admin.ModelAdmin):
     search_fields = ['abbreviation']
 
 class BacktestsAdmin(admin.ModelAdmin):
-    list_display = ('buid', 'strategy_id', 'strategy', 'ticker', 'trade_frequency', 'shares', 'pnl', 'volatility', 'sharpe_ratio', 'sortino_ratio', 'max_drawdown', 'winning_rate', 'losing_rate', 'start', 'end', 'created')
+    list_display = ('buid', 'strategy_id', 'ticker', 'trade_frequency', 'shares', 'pnl', 'volatility', 'sharpe_ratio', 'sortino_ratio', 'max_drawdown', 'winning_rate', 'losing_rate', 'start', 'end', 'created')
 
 admin.site.register(Strategy, StrategyAdmin)
 admin.site.register(Ticker, TickerAdmin)

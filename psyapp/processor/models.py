@@ -1,11 +1,8 @@
 from __future__ import unicode_literals
 from django.db import models
 from django.core.validators import RegexValidator
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 from users.models import User
-from slp import slprocessor
 
 # Create your models here.
 DAY = 'daily'
@@ -40,6 +37,8 @@ class Strategy(models.Model):
     decoded_strategy = models.CharField(max_length=999, blank=True, null=True)
     ticker = models.ForeignKey(Ticker, on_delete=models.CASCADE, null=True)
     trade_frequency = models.CharField(max_length=10, choices=TRADE_FREQUENCY_CHOICES, default=DAY)
+    stop_loss = models.FloatField(null=True)
+    profit_booking = models.FloatField(null=True)
     shares = models.PositiveIntegerField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True, null=True)
     updated = models.DateTimeField(auto_now=True, null=True)
@@ -51,12 +50,6 @@ class Strategy(models.Model):
     def __unicode__(self):
         return self.name
 
-@receiver(post_save, sender=Strategy)
-def strategy_nlp(sender, instance, **kwargs):
-    decoded_strategy = slprocessor(instance.strategy)
-    instance.decoded_strategy = decoded_strategy
-    instance.save()
-
 class Indicators(models.Model):
     abbreviation = models.CharField(max_length=10, blank=True, null=False, unique=True)
     name = models.CharField(max_length=50, blank=True, null=False, unique=True)
@@ -65,7 +58,7 @@ class Indicators(models.Model):
         verbose_name_plural = 'Indicators'
 
     def __unicode__(self):
-        return self.abbreviation
+        return self.name
 
 class Backtests(models.Model):
     alphanumeric = RegexValidator(regex=r'^[0-9a-z]*$', message='Only alphanumeric characters are allowed')
@@ -73,10 +66,13 @@ class Backtests(models.Model):
     buid = models.CharField(max_length=32, primary_key=True, validators=[alphanumeric])
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     strategy_id = models.ForeignKey(Strategy, null=True)
-    strategy = models.CharField(max_length=999, blank=True, null=True),
     ticker = models.ForeignKey(Ticker, on_delete=models.CASCADE, null=True)
     trade_frequency = models.CharField(max_length=10, choices=TRADE_FREQUENCY_CHOICES, default=DAY)
     shares = models.PositiveIntegerField(null=True, blank=True)
+    start = models.DateTimeField(null=True)
+    end = models.DateTimeField(null=True)
+
+    # Performance fields
     pnl = models.FloatField(null=True)
     volatility = models.FloatField(null=True)
     sharpe_ratio = models.FloatField(null=True)
@@ -84,8 +80,6 @@ class Backtests(models.Model):
     max_drawdown = models.FloatField(null=True)
     winning_rate = models.FloatField(null=True)
     losing_rate = models.FloatField(null=True)
-    start = models.DateTimeField(null=True)
-    end = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True, null=True)
 
     class Meta:

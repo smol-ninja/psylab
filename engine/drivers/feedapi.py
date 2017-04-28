@@ -7,7 +7,7 @@ import datetime, dateutil.parser
 # start_time = time.time()
 client = MongoClient()
 db = client.tickdata
-def fetch_price(secid, datetime, frequency):
+def fetch_price(secId, datetime, frequency):
     """
 	Take securityid and datetime as input.
     Use "YYYY-MM-DDTHH:MM:SS" format for datetime
@@ -18,8 +18,8 @@ def fetch_price(secid, datetime, frequency):
 	case 3: freq = hourly, fetch price during that hour at closing. Example, 9:15, 10:15, 11:15
 	case 4: freq = weekly, fetch price on every monday at 15:30
     """
-    return fetch_data(secid, datetime, frequency,'closeValue')
-def fetch_data(secid, datetime, frequency, objectType="closeValue"):
+    return fetch_data(secId, datetime, frequency,'closeValue')
+def fetch_data(secId, datetime, frequency, objectType="closeValue"):
     """
 	a generalized fucntion which can take "close_price"
 	"open_price", "quantity", "open-interest" as type values.
@@ -27,7 +27,7 @@ def fetch_data(secid, datetime, frequency, objectType="closeValue"):
     dateformat: "YYYY-MM-DDTHH:MM:SS"
     """
     d = dateutil.parser.parse(datetime)
-    secid=str(secid)
+    secid=str(secId)
     dateValue=str(d.strftime('%d%m%Y'))
     cursor=db.ticker.find_one({"_id":secid})
     if frequency=='minute':
