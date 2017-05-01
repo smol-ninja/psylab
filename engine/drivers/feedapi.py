@@ -36,14 +36,14 @@ def fetch_data(secId, datetime, frequency, objectType="closeValue"):
             obj=cursor['ticker'][dateValue][timeValue]
             return obj['closeValue']
         except Exception as e:
-            print Exception(e)
+            raise
     elif frequency=='daily':
         timeValue='152959'
         try:
             obj=cursor['ticker'][dateValue][timeValue]
             return obj['closeValue']
         except Exception as e:
-            print Exception(e)
+            raise
     elif frequency=='hourly':
         timeValue=str(d.strftime('%H'))
         timeValue=timeValue+'1559'
@@ -51,7 +51,7 @@ def fetch_data(secId, datetime, frequency, objectType="closeValue"):
             obj=cursor['ticker'][dateValue][timeValue]
             return obj['closeValue']
         except Exception as e:
-            print Exception(e)
+            raise
     # TODO: weekly
 def fetch_price_list(secId, datefrom, dateto, frequency):
     """
@@ -90,9 +90,9 @@ def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
                     try:
                         dateArr.append(obj[key][timekey][objectType])
                     except Exception as e:
-                        print Exception(e)
+                        raise
             except Exception as e:
-                print Exception(e)
+                raise
             if len(dateArr):
                 arr.append(dateArr)
         return arr
@@ -102,7 +102,7 @@ def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
             try:
                 arr.append(obj[key]['152959'][objectType])
             except Exception as e:
-                print Exception(e)
+                raise
         return arr
     elif frequency=='hourly':
         arr=[]
@@ -112,7 +112,7 @@ def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
                 try:
                     timeArr.append(obj[key][hour][objectType])
                 except Exception as e:
-                    print Exception(e)
+                    raise
             if len(timeArr):
                 arr.append(timeArr)
         return arr
