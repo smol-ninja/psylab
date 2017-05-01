@@ -1,6 +1,6 @@
 *.pyc
 *.log
-backdata/
+backdata1/
 env/
 engine/drivers/*.csv
 engine/drivers/*.csv#

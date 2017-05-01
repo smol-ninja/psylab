@@ -8,6 +8,8 @@ class Dataset(object):
         secId = <type str>
         from_date, to_date = 'YYYY-MM-DD'
         frequency = minute, daily, hourly
+
+        returns a DataFrame
         """
         self.secId = secId
         self.from_date = from_date
@@ -26,6 +28,10 @@ class Dataset(object):
                                               dateto=self.to_date,
                                               frequency=self.frequency)
 
+        import pdb; pdb.set_trace()
+
     def dataset(self):
         price_array = numpy.array(self.price_list)
         self.data_frame = pd.DataFrame({self.secId: price_array})
+
+Dataset(secId='101', from_date='2016-01-01', to_date='2016-12-31', frequency='daily')
