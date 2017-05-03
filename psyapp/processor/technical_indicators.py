@@ -79,6 +79,7 @@ class Addition(TechnicalIndicator):
             data_frame[self.value] = data_frame[self.data1] + data_frame[self.data2]
         else:
             data_frame[self.value] = data_frame[self.data1] + self.data2
+        return data_frame
 
 class Subtraction(TechnicalIndicator):
     """
@@ -99,6 +100,7 @@ class Subtraction(TechnicalIndicator):
             data_frame[self.value] = data_frame[self.data1] - data_frame[self.data2]
         else:
             data_frame[self.value] = data_frame[self.data1] - self.data2
+        return data_frame
 
 class Multiplication(TechnicalIndicator):
     """
@@ -119,6 +121,7 @@ class Multiplication(TechnicalIndicator):
             data_frame[self.value] = data_frame[self.data1] * data_frame[self.data2]
         else:
             data_frame[self.value] = data_frame[self.data1] * self.data2
+        return data_frame
 
 class Division(TechnicalIndicator):
     """
@@ -139,6 +142,7 @@ class Division(TechnicalIndicator):
             data_frame[self.value] = data_frame[self.data1] / data_frame[self.data2]
         else:
             data_frame[self.value] = data_frame[self.data1] / self.data2
+        return data_frame
 
 class PercentChange(TechnicalIndicator):
     """
@@ -162,6 +166,7 @@ class PercentChange(TechnicalIndicator):
             data_frame[self.value] = (series2 - series1) / series1
         else: # Value
             data_frame[self.value] = data_frame[self.data1].pct_change(self.data2)
+        return data_frame
 
 class Max(TechnicalIndicator):
     """
@@ -183,6 +188,7 @@ class Max(TechnicalIndicator):
             data_frame[self.value] = pd.rolling_max(data_frame[self.data], self.period)
         except KeyError:
             data_frame[self.value] = np.nan
+        return data_frame
 
 class Min(TechnicalIndicator):
     """
@@ -204,6 +210,7 @@ class Min(TechnicalIndicator):
             data_frame[self.value] = pd.rolling_min(data_frame[self.data], self.period)
         except KeyError:
             data_frame[self.value] = np.nan
+        return data_frame
 
 class InvalidShift(Exception):
     """
@@ -231,6 +238,7 @@ class Shift(TechnicalIndicator):
         return self.value
     def results(self, data_frame):
         data_frame[self.value] = data_frame[self.data].shift(self.period)
+    return data_frame
 
 class SMA(TechnicalIndicator):
     """
@@ -249,6 +257,7 @@ class SMA(TechnicalIndicator):
         return self.value
     def results(self, data_frame):
         data_frame[self.value] = pd.rolling_mean(data_frame[self.data], self.period)
+    return data_frame
 
 class EMA(TechnicalIndicator):
     """
@@ -269,6 +278,7 @@ class EMA(TechnicalIndicator):
             data_frame[self.value] = talib.EMA(data_frame[self.data].values, self.period)
         except KeyError:
             data_frame[self.value] = np.nan
+        return data_frame
 
 class RSI(TechnicalIndicator):
     """
@@ -290,6 +300,7 @@ class RSI(TechnicalIndicator):
             data_frame[self.value] = talib.RSI(data_frame[self.data].values, timeperiod=self.period)
         except KeyError:
             data_frame[self.value] = np.nan
+        return data_frame
 
 class ATR(TechnicalIndicator):
     """
@@ -316,6 +327,7 @@ class ATR(TechnicalIndicator):
                                                timeperiod=self.period)
         except KeyError:
             data_frame[self.value] = np.nan
+        return data_frame
 
 class BBANDS(TechnicalIndicator):
     """
@@ -353,6 +365,7 @@ class BBANDS(TechnicalIndicator):
             data_frame[self.upper] = np.nan
             data_frame[self.middle] = np.nan
             data_frame[self.lower] = np.nan
+        return data_frame
 
 class DX(TechnicalIndicator):
     """
@@ -380,6 +393,7 @@ class DX(TechnicalIndicator):
             data_frame[self.value] = directional_index
         except KeyError:
             data_frame[self.value] = np.nan
+        return data_frame
 
 class ADX(TechnicalIndicator):
     """
@@ -421,6 +435,7 @@ class ADX(TechnicalIndicator):
             data_frame[self.value] = np.nan
             data_frame[self.plus_di] = np.nan
             data_frame[self.minus_di] = np.nan
+        return data_frame
 
 class ULTOSC(TechnicalIndicator):
     """
@@ -452,6 +467,7 @@ class ULTOSC(TechnicalIndicator):
             data_frame[self.value] = ultosc
         except KeyError:
             data_frame[self.value] = np.nan
+        return data_frame
 
 class STOCH(TechnicalIndicator):
     """
@@ -503,6 +519,7 @@ class STOCH(TechnicalIndicator):
         except KeyError:
             data_frame[self.slowk] = np.nan
             data_frame[self.slowd] = np.nan
+        return data_frame
 
 class STOCHF(TechnicalIndicator):
     """
@@ -543,3 +560,4 @@ class STOCHF(TechnicalIndicator):
         except KeyError:
             data_frame[self.fastk] = np.nan
             data_frame[self.fastd] = np.nan
+        return data_frame

@@ -19,7 +19,7 @@ class Dataset(object):
         self.load_data()
         self.dataset()
 
-    def __repr__(self):
+    def get_data_frame(self):
         return self.data_frame
 
     def load_data(self):
@@ -27,9 +27,8 @@ class Dataset(object):
                                               datefrom=self.from_date,
                                               dateto=self.to_date,
                                               frequency=self.frequency)
+        self.price_list = [float(i) for i in self.price_list]
 
     def dataset(self):
         price_array = numpy.array(self.price_list)
         self.data_frame = pd.DataFrame({self.secId: price_array})
-
-print Dataset(secId='101', from_date='2017-01-25', to_date='2017-01-26', frequency='daily')
