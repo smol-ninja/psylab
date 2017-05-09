@@ -32,11 +32,12 @@ class StrategySimulator(object):
 class StrategyCriterion(object):
     operators = ('>=', '<=', '==', '>', '<', '!=')
     brackets = ('(', ')')
+    gates = ('and', 'or')
 
     def __init__(self, enter_criterion=None, exit_criterion=None, stop_loss=None, profit_booking=None):
         """
-        enter_criterion: <type str> 'ema(20) >= sma(10)'
-        exit_criterion: <type str> 'ema(20) >= sma(10)'
+        enter_criterion: <type str> 'ema(20) >= sma(10) and/or ema(20) >= sma(10)'
+        exit_criterion: <type str> 'ema(20) >= sma(10) and/or ema(20) >= sma(10)'
         stop_loss: <type %>
         profit_booking: <type %>
 
@@ -48,11 +49,54 @@ class StrategyCriterion(object):
             'exit_criterion': function
         }
         """
-        pass
+        self.criterion_dict = {}
+        try:
+            stop_loss = float(stop_loss)
+            if 0 <= stop_loss <= 100:
+                self.criterion_dict.update({'stop_loss': stop_loss})
+            else:
+                raise Exception('stop_loss must lie in 0 - 100')
+        except:
+            raise Exception('stop_loss is not a number')
+        try:
+            profit_booking = float(profit_booking)
+            if 0 <= profit_booking <= 100:
+                self.criterion_dict.update({'profit_booking': profit_booking})
+            else:
+                raise Exception('profit_booking must lie in 0 - 100')
+        except:
+            raise Exception('profit_booking is not a number')
+        self.criterion_dict.update({'enter_criterion': self.parse_criterion(enter_criterion)})
+        self.criterion_dict.update({'exit_criterion': self.parse_criterion()(exit_criterion)})
 
     def parse_criterion(criterion):
+        criterion = criterion.lower().strip()
+        """
+        if or/and is absent, [[criterion]]
+        if or is present, [[c1], [c2]]
+        if and is present, [[c1, c2]]
+        if and or are present, [[c1, c2], [c3, c4], [[c5], [c6]]]
+        """
+        criterion = [[i.strip()] for i in criterion.split('or')]
+        criterion = [k[0].split('and') for k in criterion]
+        criterion_temp = []
+        for i in criterion:
+            temp = []
+            for j in i:
+                temp.append(j.strip())
+            criterion_temp.append(temp)
+        criterion = criterion_temp
+        
+        split_criterion = None
+        for operator in self.operators:
+            if len(criterion.split(operator)) > 1:
+                split_criterion = criterion.split(operator)
+                break
+            else:
+                continue
+        if split_criterion == None:
+            raise Exception('Could not decode strategy operators')
 
-
-class Performance(object):
+class StrategPerformance(object):
     def __init__(self):
         pass

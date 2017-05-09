@@ -75,4 +75,5 @@ def indicator_view(request):
 @login_required
 def backtest_view(request):
     if request.method == 'POST':
-        pass
+        ticker = Ticker.objects.filter(symbol=request.data['ticker'])
+        strategy = Strategy.objects.get(user=request.user)
