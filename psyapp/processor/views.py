@@ -1,10 +1,14 @@
+import time
+import base64
+import hashlib
+
 from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import permissions
 from rest_framework.response import Response
 
 from .serializers import StrategySerializer, TickerSerializer, IndicatorsSerializer
-from .models import Strategy, Ticker, Indicators
+from .models import Strategy, Ticker, Indicators, Backtests
 from slp import NLPService
 
 # Create your views here.l
@@ -75,5 +79,32 @@ def indicator_view(request):
 @login_required
 def backtest_view(request):
     if request.method == 'POST':
+        """
+        request fields: {user: , strategy_id: , ticker: , quantity: , frequency: , start_time: , end_time: }.
+        frequency in (minute, daily, hourly, weekly)
+        start_time, end_time format: YYYY-MM-DD
+        """
+        user = request.user
         ticker = Ticker.objects.filter(symbol=request.data['ticker'])
-        strategy = Strategy.objects.get(user=request.user)
+        strategy_id = request['strategy_id']
+        strategy = Strategy.objects.get(user=request.user, pk=strategy_id)
+        trade_quantity = int(quantity)
+        trade_frequency = request['frequency']
+        start = request['start_time']
+        end = request['end_time']
+
+        # Creating backtest Unique ID
+        epoch = str(int(time.time()))
+        nonce = epoch + strategy_id
+        buid = base64.urlsafe_b64encode(hashlib.md5(nonce).digest())
+
+        bo = Backtests.objects.create(
+                buid=buid,
+                user=user,
+                strategy=strategy,
+                ticker=ticker,
+                trade_frequency=trade_frequency,
+                trade_quantity=trade_quantity,
+                start=start,
+                end=end
+        )

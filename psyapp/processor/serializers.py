@@ -23,4 +23,4 @@ class IndicatorsSerializer(serializers.ModelSerializer):
 class BacktestsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Backtests
-        fields = ('buid', 'strategy_id', 'ticker', 'trade_frequency', 'shares', 'pnl', 'volatility', 'sharpe_ratio', 'sortino_ratio', 'max_drawdown', 'winning_rate', 'losing_rate', 'start', 'end')
+        fields = ('buid', 'strategy_id', 'ticker', 'trade_frequency', 'trade_quantity', 'pnl', 'volatility', 'sharpe_ratio', 'sortino_ratio', 'max_drawdown', 'winning_rate', 'losing_rate', 'start', 'end')

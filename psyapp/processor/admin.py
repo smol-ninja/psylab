@@ -41,7 +41,7 @@ class IndicatorsAdmin(admin.ModelAdmin):
     search_fields = ['abbreviation']
 
 class BacktestsAdmin(admin.ModelAdmin):
-    list_display = ('buid', 'strategy_id', 'ticker', 'trade_frequency', 'shares', 'pnl', 'volatility', 'sharpe_ratio', 'sortino_ratio', 'max_drawdown', 'winning_rate', 'losing_rate', 'start', 'end', 'created')
+    list_display = ('buid', 'strategy_id', 'ticker', 'trade_frequency', 'trade_quantity', 'pnl', 'volatility', 'sharpe_ratio', 'sortino_ratio', 'max_drawdown', 'winning_rate', 'losing_rate', 'start', 'end', 'created')
 
 admin.site.register(Strategy, StrategyAdmin)
 admin.site.register(Ticker, TickerAdmin)

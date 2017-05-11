@@ -61,14 +61,12 @@ class Indicators(models.Model):
         return self.name
 
 class Backtests(models.Model):
-    alphanumeric = RegexValidator(regex=r'^[0-9a-z]*$', message='Only alphanumeric characters are allowed')
-
-    buid = models.CharField(max_length=32, primary_key=True, validators=[alphanumeric])
+    buid = models.CharField(max_length=32, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    strategy_id = models.ForeignKey(Strategy, null=True)
+    strategy = models.ForeignKey(Strategy, null=True)
     ticker = models.ForeignKey(Ticker, on_delete=models.CASCADE, null=True)
     trade_frequency = models.CharField(max_length=10, choices=TRADE_FREQUENCY_CHOICES, default=DAY)
-    shares = models.PositiveIntegerField(null=True, blank=True)
+    trade_quantity = models.PositiveIntegerField(null=True, blank=True)
     start = models.DateTimeField(null=True)
     end = models.DateTimeField(null=True)
 
