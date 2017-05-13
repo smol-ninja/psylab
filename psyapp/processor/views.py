@@ -31,7 +31,6 @@ def strategy_view(request, **kwargs):
                 name=request.data['name'],
                 user=request.user,
                 strategy=request.data['strategy'],
-                decoded_strategy=NLPService(request.data['strategy']),
                 ticker=ticker,
                 shares=request.data['shares'],
                 stop_loss=request.data['stop_loss'],
