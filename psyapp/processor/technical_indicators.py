@@ -144,7 +144,7 @@ class Division(TechnicalIndicator):
             data_frame[self.value] = data_frame[self.data1] / self.data2
         return data_frame
 
-class PercentChange(TechnicalIndicator):
+class ROC(TechnicalIndicator):
     """
     A technical indicator that provides a running percent change over
     a time series.

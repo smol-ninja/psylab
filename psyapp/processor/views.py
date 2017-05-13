@@ -1,6 +1,8 @@
 import time
 import base64
 import hashlib
+import pytz
+from datetime import datetime
 
 from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view, permission_classes
@@ -80,22 +82,51 @@ def indicator_view(request):
 def backtest_view(request):
     if request.method == 'POST':
         """
-        request fields: {user: , strategy_id: , ticker: , quantity: , frequency: , start_time: , end_time: }.
+        {
+    	"strategy_id": 44,
+    	"ticker": "INSECTICID",
+    	"quantity": 1,
+    	"frequency": "daily",
+    	"start_time": "2017-02-03",
+    	"end_time": "2017-02-05"
+        }
         frequency in (minute, daily, hourly, weekly)
         start_time, end_time format: YYYY-MM-DD
         """
         user = request.user
-        ticker = Ticker.objects.filter(symbol=request.data['ticker'])
-        strategy_id = request['strategy_id']
+        ticker = Ticker.objects.get(symbol=request.data['ticker'])
+        strategy_id = request.data['strategy_id']
         strategy = Strategy.objects.get(user=request.user, pk=strategy_id)
-        trade_quantity = int(quantity)
-        trade_frequency = request['frequency']
-        start = request['start_time']
-        end = request['end_time']
+        trade_quantity = int(request.data['quantity'])
+        trade_frequency = request.data['frequency']
+        start = request.data['start_time']
+        end = request.data['end_time']
+        start_year, start_month, start_date = [int(i) for i in start.split('-')]
+        end_year, end_month, end_date = [int(i) for i in end.split('-')]
+
+        if start > end:
+            return Response(status=405, data={'error': 'start date cannot be greater than end data.'})
+        else:
+            start = pytz.timezone('Asia/Kolkata').localize(
+                    datetime(
+                        year=start_year,
+                        month=start_month,
+                        day=start_date,
+                        hour=9,
+                        minute=15,
+            ))
+            end = pytz.timezone('Asia/Kolkata').localize(
+                    datetime(
+                        year=end_year,
+                        month=end_month,
+                        day=end_date,
+                        hour=15,
+                        minute=30,
+            ))
 
         # Creating backtest Unique ID
         epoch = str(int(time.time()))
-        nonce = epoch + strategy_id
+        nonce = epoch + str(strategy_id)
         buid = base64.urlsafe_b64encode(hashlib.md5(nonce).digest())
 
         bo = Backtests.objects.create(
@@ -108,3 +139,4 @@ def backtest_view(request):
                 start=start,
                 end=end
         )
+        return Response(status=200, data={'backtestId': buid})
