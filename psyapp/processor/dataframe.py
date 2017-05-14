@@ -34,52 +34,43 @@ for i in range (0,len(df.index)):
             df['openvalue'][i]=df['openvalue'][i-1]-df['share'][i]*df['price'][i]
             df['re'][i]=df['share'][i]*(df['price'][i-1]-df['price'][i])
 
-print df
+class StrategPerformance(object):
+    def __init__(self, df):
+        self.df=df
+        self.daily_return=df['re']
+    def annualized_return(self):
+        total_return=self.daily_return.sum()
+        total_days = self.daily_return.index.size
+        if total_return < -1:
+            total_return = -1
+        return ((1 + total_return)**(252 / total_days) - 1)
 
-def performance(df):
-    stats={}
-    daily_return=df['re']
-    print daily_return
-    stats['Annual Return'] = annualized_return(daily_return)
-    stats['Annual Vol'] = annual_vol(daily_return)
-    stats['Sharpe Ratio'] = sharpe_ratio(daily_return)
-    stats['Sortino Ratio'] = sortino_ratio(daily_return)
-    stats['Max Drawdown'] = max_drawdown(daily_return)
-    return stats
+    def annualized_std(self):
+        return np.sqrt(252) * np.std(self.daily_return)
 
-def annualized_return(daily_return):
-    total_return = daily_return.sum()
-    total_days = daily_return.index.size
-    if total_return < -1:
-        total_return = -1
-    return ((1 + total_return)**(252 / total_days) - 1)
+    def annualized_downside_std(self):
+        downside_return = self.daily_return.copy()
+        downside_return[downside_return > 0] = 0
+        return np.sqrt(252) * np.std(downside_return)
 
-def annualized_std(daily_return):
-    return np.sqrt(252) * np.std(daily_return)
+    def annual_vol(self):
+        return self.annualized_std()
 
-def annualized_downside_std(daily_return):
-    downside_return = daily_return.copy()
-    downside_return[downside_return > 0] = 0
-    return np.sqrt(252) * np.std(downside_return)
+    def sharpe_ratio(self):
+        stdev = self.annualized_std()
+        if stdev == 0:
+            return np.nan
+        else:
+            return self.annualized_return() / stdev
 
-def annual_vol(daily_return):
-    return annualized_std(daily_return)
+    def sortino_ratio(self):
+        stdev = self.annualized_downside_std()
+        if stdev == 0:
+            return np.nan
+        else:
+            return self.annualized_return() / stdev
 
-def sharpe_ratio(daily_return):
-    stdev = annualized_std(daily_return)
-    if stdev == 0:
-        return np.nan
-    else:
-        return annualized_return(daily_return) / stdev
-def sortino_ratio(daily_return):
-
-    stdev = annualized_downside_std(daily_return)
-    if stdev == 0:
-        return np.nan
-    else:
-        return annualized_return(daily_return) / stdev
-
-def max_drawdown(daily_return):
-    return np.max(np.maximum.accumulate(daily_return) - daily_return)
-
-print performance(df)
+    def max_drawdown(self):
+        return np.max(np.maximum.accumulate(self.daily_return) - self.daily_return)
+sp=StrategPerformance(df)
+print sp.annualized_return(), sp.annualized_std(), sp.annualized_downside_std(), sp.annual_vol(), sp.sharpe_ratio()
