@@ -10,7 +10,7 @@ db = client.tickdata
 Check if symbol_sid collection exists, if not then create
 an autoincrement sid_counter collection
 """
-csvFile = open('uin.csv')
+csvFile = open('backdata/uin.csv')
 csvReader = csv.reader(csvFile)
 data = list(csvReader)
 data=sorted(data, key=lambda x: x[0], reverse=False)
@@ -114,23 +114,24 @@ def create_sid(ticker,fyear):
     """
     if db.symbol_sid.find_one({'symbol':ticker[0]}) is None:
         symbol=ticker[0].split('-')
+        if len(symbol)>2:
+            symbol[0]=symbol[0]+'-'+symbol[1]
         result=(db.uin.find_one({'symbol':symbol[0]}))
         try:
             sid=result['sid']
         except Exception as e:
-            pass
+            sid=str(get_next_sequence(db.sid_counter,"sid"))
         if "III" in ticker[0]:
             expiry='three'
             sid=sid+'III'
         elif "II" in ticker[0]:
-            expiry='two'
+            expiry='next'
             sid=sid+'II'
         elif "I" in ticker[0]:
-            expiry='one'
-            sid=sid+'I'
+            expiry='current'
         else:
             expiry=None
-        db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0],'expiry':expiry,'option_type':'future'})
+        db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0],'expiry':expiry,'securityType':'future'})
     elif (db.symbol_sid.find_one({'symbol':ticker[0]})):
         result = db.symbol_sid.find_one({'symbol':ticker[0]})
         sid=result["sid"]
@@ -161,28 +162,33 @@ def write_mongo(data,row,ticker_col,fyear):
     current_time=(data[row][2].replace(":",""))
     if current_time[0]=='9':
         current_time='0'+current_time
-    print data[row]
-    openValue=data[row][3]
-    highValue=data[row][4]
-    lowValue=data[row][5]
-    closeValue=data[row][6]
-    volume=data[row][7]
-    openInterest=data[row][8]
-    if 1<=row:
-        previous_date=(data[row-1][1].replace("/",""))
-        if db.ticker.find_one({ "_id":sid}):
-            if is_date(current_date,previous_date):
+    # print data[row]
+    try:
+        symTyp=data[row][0].split('-')
+    except Exception as e:
+        pass
+    if symTyp[len(symTyp)-1]=='I':
+        openValue=data[row][3]
+        highValue=data[row][4]
+        lowValue=data[row][5]
+        closeValue=data[row][6]
+        volume=data[row][7]
+        openInterest=data[row][8]
+        if 1<=row:
+            previous_date=(data[row-1][1].replace("/",""))
+            if db.ticker.find_one({ "_id":sid}):
+                if is_date(current_date,previous_date):
+                    insert_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
+                else:
+                    update_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
+            elif db.ticker.find_one({ "_id":sid}) is None:
+                insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
+        else:
+            if db.ticker.find_one({ "_id":sid}):
                 insert_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
-            else:
-                update_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
-        elif db.ticker.find_one({ "_id":sid}) is None:
-            insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
-    else:
-        if db.ticker.find_one({ "_id":sid}):
-            insert_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
-        elif db.ticker.find_one({ "_id":sid}) is None:
-            insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
-path=('/home/man15h/Work/Repos/psylab/engine/drivers/*.csv')
+            elif db.ticker.find_one({ "_id":sid}) is None:
+                insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
+path=('backdata/*.csv')
 for fname in glob.glob(path):
     """
     Sort data based on symbol
