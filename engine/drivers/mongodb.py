@@ -10,6 +10,18 @@ db = client.tickdata
 Check if symbol_sid collection exists, if not then create
 an autoincrement sid_counter collection
 """
+csvFile = open('uin.csv')
+csvReader = csv.reader(csvFile)
+data = list(csvReader)
+data=sorted(data, key=lambda x: x[0], reverse=False)
+for row in range(0,len(data)):
+    print data[row]
+    db.uin.insert_one({
+        "symbol":data[row][0],
+        "sid":data[row][2],
+        "expiry":"current",
+        "type":"future"
+    })
 if db.symbol_sid.find_one({ "_id": { '$exists': True } }) is None:
     db.sid_counter.insert({'_id': "sid", 'seq': 0})
 
@@ -102,40 +114,44 @@ def create_sid(ticker,fyear):
     using get_next_sequence
     Check option type and insert into symbol_sid collection
     """
-    if (db.symbol_sid.find_one({'symbol':ticker[0]})) is None:
-        if "-" in ticker[0]:
-            sid=get_next_sequence(db.sid_counter,"sid")
-            if "III" in ticker[0]:
-                expiry='three'
-            elif "II" in ticker[0]:
-                expiry='two'
-            elif "I" in ticker[0]:
-                expiry='one'
-            else:
-                expiry=None
-            db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0],'expiry':expiry,'option_type':'future'})
-        else:
-            sid=get_next_sequence(db.sid_counter,"sid")
-            db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0]})
-    elif (db.symbol_sid.find_one({'symbol':ticker[0]})):
-        result = db.symbol_sid.find_one({'symbol':ticker[0]})
-        sid=result["sid"]
-    if len(ticker)==5:
-        print "option",
-        sid='50'+str(sid)
-        if ticker[4]=='PE':
-            sid+='PE'
-        else:
-            sid+='CE'
-        sid+=ticker[1]+(str(abbr_to_num[ticker[2].title()])+fyear+ticker[3])
-    elif len(ticker)!=5 and ticker[0]!='Ticker':
-        if "-" in ticker[0]:
-            sid='10'+str(sid)
-            print "future",
-        else:
-            sid='30'+str(sid)
-            print "cash",
-    return sid
+    if "I" in ticker[0]:
+        symbol=ticker[0].split('-')
+        ticker=(db.uin.find_one({'symbol':symbol[0]}))
+        return ticker['sid']
+    # if (db.uin.find_one({'symbol':ticker[0]})) is None:
+    #     if "-" in ticker[0]:
+    #         sid=get_next_sequence(db.sid_counter,"sid")
+    #         if "III" in ticker[0]:
+    #             expiry='three'
+    #         elif "II" in ticker[0]:
+    #             expiry='two'
+    #         elif "I" in ticker[0]:
+    #             expiry='one'
+    #         else:
+    #             expiry=None
+    #         db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0],'expiry':expiry,'option_type':'future'})
+    #     else:
+    #         sid=get_next_sequence(db.sid_counter,"sid")
+    #         db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0]})
+    # elif (db.symbol_sid.find_one({'symbol':ticker[0]})):
+    #     result = db.symbol_sid.find_one({'symbol':ticker[0]})
+    #     sid=result["sid"]
+    # if len(ticker)==5:
+    #     print "option",
+    #     sid='50'+str(sid)
+    #     if ticker[4]=='PE':
+    #         sid+='PE'
+    #     else:
+    #         sid+='CE'
+    #     sid+=ticker[1]+(str(abbr_to_num[ticker[2].title()])+fyear+ticker[3])
+    # elif len(ticker)!=5 and ticker[0]!='Ticker':
+    #     if "-" in ticker[0]:
+    #         sid='10'+str(sid)
+    #         print "future",
+    #     else:
+    #         sid='30'+str(sid)
+    #         print "cash",
+    # return sid
 
 def write_mongo(data,row,ticker_col,fyear):
     """
@@ -169,7 +185,7 @@ def write_mongo(data,row,ticker_col,fyear):
             insert_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
         elif db.ticker.find_one({ "_id":sid}) is None:
             insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
-path=('backdata/*.csv')
+path=('/home/man15h/Work/Repos/psylab/engine/drivers/*.csv')
 for fname in glob.glob(path):
     """
     Sort data based on symbol
