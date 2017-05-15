@@ -18,9 +18,7 @@ for row in range(0,len(data)):
     print data[row]
     db.uin.insert_one({
         "symbol":data[row][0],
-        "sid":data[row][2],
-        "expiry":"current",
-        "type":"future"
+        "sid":data[row][2]
     })
 if db.symbol_sid.find_one({ "_id": { '$exists': True } }) is None:
     db.sid_counter.insert({'_id': "sid", 'seq': 0})
@@ -114,30 +112,29 @@ def create_sid(ticker,fyear):
     using get_next_sequence
     Check option type and insert into symbol_sid collection
     """
-    if "I" in ticker[0]:
+    if db.symbol_sid.find_one({'symbol':ticker[0]}) is None:
         symbol=ticker[0].split('-')
-        ticker=(db.uin.find_one({'symbol':symbol[0]}))
-        return ticker['sid']
-    # if (db.uin.find_one({'symbol':ticker[0]})) is None:
-    #     if "-" in ticker[0]:
-    #         sid=get_next_sequence(db.sid_counter,"sid")
-    #         if "III" in ticker[0]:
-    #             expiry='three'
-    #         elif "II" in ticker[0]:
-    #             expiry='two'
-    #         elif "I" in ticker[0]:
-    #             expiry='one'
-    #         else:
-    #             expiry=None
-    #         db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0],'expiry':expiry,'option_type':'future'})
-    #     else:
-    #         sid=get_next_sequence(db.sid_counter,"sid")
-    #         db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0]})
-    # elif (db.symbol_sid.find_one({'symbol':ticker[0]})):
-    #     result = db.symbol_sid.find_one({'symbol':ticker[0]})
-    #     sid=result["sid"]
+        result=(db.uin.find_one({'symbol':symbol[0]}))
+        try:
+            sid=result['sid']
+        except Exception as e:
+            pass
+        if "III" in ticker[0]:
+            expiry='three'
+            sid=sid+'III'
+        elif "II" in ticker[0]:
+            expiry='two'
+            sid=sid+'II'
+        elif "I" in ticker[0]:
+            expiry='one'
+            sid=sid+'I'
+        else:
+            expiry=None
+        db.symbol_sid.insert({'sid': sid, 'symbol':ticker[0],'expiry':expiry,'option_type':'future'})
+    elif (db.symbol_sid.find_one({'symbol':ticker[0]})):
+        result = db.symbol_sid.find_one({'symbol':ticker[0]})
+        sid=result["sid"]
     # if len(ticker)==5:
-    #     print "option",
     #     sid='50'+str(sid)
     #     if ticker[4]=='PE':
     #         sid+='PE'
@@ -151,7 +148,7 @@ def create_sid(ticker,fyear):
     #     else:
     #         sid='30'+str(sid)
     #         print "cash",
-    # return sid
+    return sid
 
 def write_mongo(data,row,ticker_col,fyear):
     """
