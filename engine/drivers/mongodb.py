@@ -120,7 +120,7 @@ def create_sid(ticker,fyear):
         try:
             sid=result['sid']
         except Exception as e:
-            sid=str(get_next_sequence(db.sid_counter,"sid"))
+            sid=symbol[0]
         if "III" in ticker[0]:
             expiry='three'
             sid=sid+'III'
