@@ -13,14 +13,14 @@ def fetch_secId(symbol, securityType='stock', optionType=None, strikePrice=None,
     securityType can be stock, futures or option.
     optionType can be call or put
     should return securityId
+    expiry: DD-MM-YYYY
     """
     if securityType=='futures':
         if expiry=='current':
             symbol=symbol+'-I'
         elif expiry=='next':
             symbol=symbol+'-II'
-    print symbol
-    result=db.symbol_sid.find_one({'symbol':symbol})
+        result=db.symbol_sid.find_one({'symbol':symbol})
     return result
 def fetch_price(secId, datetime, frequency):
     """
