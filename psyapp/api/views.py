@@ -9,5 +9,9 @@ from .models import Subscriber
 @permission_classes([permissions.AllowAny])
 def subscriber_view(request):
     if request.method == 'POST':
-        s = Subscriber.objects.create(subscriber=request.data['email'])
-        return Response(status=200)
+        try:
+            s = Subscriber.objects.get(subscriber=request.data['email'])
+            return Response(status=302)
+        except:
+            s = Subscriber.objects.create(subscriber=request.data['email'])
+            return Response(status=200)
