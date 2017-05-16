@@ -9,7 +9,7 @@ class Dataset(object):
         from_date, to_date = 'YYYY-MM-DD'
         frequency = minute, daily, hourly
 
-        returns a DataFrame
+        returns a DataFrame to be used in TechnicalIndicator classes
         """
         self.secId = secId
         self.from_date = from_date
@@ -18,9 +18,6 @@ class Dataset(object):
 
         self.load_data()
         self.dataset()
-
-    def get_data_frame(self):
-        return self.data_frame
 
     def load_data(self):
         self.price_list = feedapi.fetch_price_list(secId=self.secId,

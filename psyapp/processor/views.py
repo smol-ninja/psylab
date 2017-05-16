@@ -12,6 +12,8 @@ from rest_framework.response import Response
 from .serializers import StrategySerializer, TickerSerializer, IndicatorsSerializer
 from .models import Strategy, Ticker, Indicators, Backtests
 from slp import NLPService
+from .dataset import Dataset
+# from .simulator import StrategyCriterion, StrategPerformance, StrategySimulator
 
 # Create your views here.l
 @api_view(['POST', 'GET', 'PUT', 'DELETE'])
@@ -97,7 +99,7 @@ def backtest_view(request):
         strategy_id = request.data['strategy_id']
         strategy = Strategy.objects.get(user=request.user, pk=strategy_id)
         trade_quantity = int(request.data['quantity'])
-        trade_frequency = request.data['frequency']
+        trade_frequency = request.data['frequency'].lower()
         start = request.data['start_time']
         end = request.data['end_time']
         start_year, start_month, start_date = [int(i) for i in start.split('-')]
@@ -138,4 +140,8 @@ def backtest_view(request):
                 start=start,
                 end=end
         )
+
+        dataset = Dataset(secId=ticker.uin, from_date=start.strftime('%Y-%m-%d'), to_date=end.strftime('%Y-%m-%d'), frequency=trade_frequency)
+        strategy_criterion = StrategyCriterion(enter_criterion=strategy.decoded_buy_strategy, exit_criterion=strategy.decoded_sell_strategy, profit_booking=strategy.profit_booking, stop_loss=strategy.stop_loss)
+
         return Response(status=200, data={'backtestId': buid})

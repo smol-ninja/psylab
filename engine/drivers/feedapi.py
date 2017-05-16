@@ -7,6 +7,7 @@ import datetime, dateutil.parser
 # start_time = time.time()
 client = MongoClient()
 db = client.tickdata
+
 def fetch_price(secId, datetime, frequency):
     """
 	Take securityid and datetime as input.
@@ -71,6 +72,7 @@ def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
 	"""
     secid=str(secId)
     cursor=db.ticker.find_one({"_id":secid})
+    import pdb; pdb.set_trace()
     obj=cursor['ticker']
     hourArr=['091559','101559','111559','121559','131559','141559','151559']
     dFrom=dateutil.parser.parse(datefrom)
