@@ -105,3 +105,49 @@ StrategyCriterion(enter_criterion='ema(20) >= ema(10) or sma(20) >= sma(10) and 
 class StrategPerformance(object):
     def __init__(self):
         pass
+    def sharpe_ratio(self):
+        """
+        Sharpe ratio = (Mean return − Risk-free rate)/Standard deviation
+        higher sharpe ratio is better
+        input parameters: mean_return, riskfree_rate, std_dev
+        return: float value (0<x<1)
+        """
+        pass
+    def sortino_ratio(self):
+        """
+        Sortino ratio=(Expected return - Risk-free rate of return)/Standard deviation of negative assests returns
+        higher Sortino ratio is better.
+        input parameters: exp_return, riskfree_rate, std_dev
+        return: float value (0<x<1)
+        """
+        pass
+    def max_drawdown(self):
+        """
+        Maximum Drawdown is expressed in percentage terms and computed as:
+        (Trough Value – Peak Value) ÷ Peak Value
+        input: through_value, peak_value
+        return: float value (0<x<1)
+        """
+        pass
+    def cagr(self):
+        """
+        Maximum Drawdown is expressed in percentage terms and computed as:
+        (Ending value/ Beginning value)^(1/ number of years) -1
+        input: end_value, beg_value, years
+        return: float value (0<x<1)
+        """
+        pass
+    def winning_rate(self):
+        """
+        Win Rate = Number of Impressions Won/ Number of Impressions Bid
+        input: won, total_bid
+        return: float value (0<x<1)
+        """
+        pass
+    def losing_rate(self):
+        """
+        Win Rate = Number of Impressions Won/ Number of Impressions Bid
+        input: loss, total_bid
+        return: float value (0<x<1)
+        """
+        pass
