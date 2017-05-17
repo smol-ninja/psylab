@@ -49,3 +49,21 @@ def fetch_view(request):
             return Response(status=404)
     else:
         return Response(status=404, data='Not available')
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def fetch_sid_view(request):
+    """
+    It will return sid corresponding to symbol.
+    Url: /api/sid
+    """
+    pass
+    # print request.data['symbol']
+    # if request.method == 'POST':
+    #     ticker_lists = Ticker.objects.all()
+    #     ts = TickerSerializer(ticker_lists, many=True)
+    #     return Response(status=200, data=ts.data)
+    #     response = FetchSid.objects.filter(symbol=request.data['symbol'])
+    #     print response
+    #     return Response(status=200, data=response)

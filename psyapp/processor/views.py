@@ -12,7 +12,6 @@ from rest_framework.response import Response
 from .serializers import StrategySerializer, TickerSerializer, IndicatorsSerializer
 from .models import Strategy, Ticker, Indicators, Backtests
 from slp import NLPService
-from engine.drivers.feedapi import fetch_price_list
 from .dataset import Dataset
 # from .simulator import StrategyCriterion, StrategPerformance, StrategySimulator
 

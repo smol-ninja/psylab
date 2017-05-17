@@ -10,17 +10,17 @@ def dummy_dataframe():
     """
     Input: Nothing, this function will create a dummy dataframe of orders of size 10
     return:
-                sid  share side  price   re  unre  openposition  avgPrice
-    2017-05-06    1     10    S     28    0     0           -10        28
-    2017-05-07    1     10    B     52 -280     0             0         0
-    2017-05-08    1     10    B     55    0     0            10        55
-    2017-05-09    1     10    B     79    0   240            20        67
-    2017-05-10    1     10    B     78    0   110            30        70
-    2017-05-11    1     10    S     93  230     0            20        70
-    2017-05-12    1     10    S     28 -420     0            10        70
-    2017-05-13    1     10    B     55    0  -150            20        62
-    2017-05-14    1     10    B     44    0  -180            30        56
-    2017-05-15    1     10    B     69    0   130            40        59
+                sid  share side  price  re  unre  openposition  avgPrice
+    2017-05-07    1      2    B     23   0   0.0             2      23.0
+    2017-05-08    1      2    S     30  14   0.0             0       0.0
+    2017-05-09    1      2    B     29  14   0.0             2      29.0
+    2017-05-10    1      2    B     66  14  74.0             4      47.5
+    2017-05-11    1      2    S     27 -27   0.0             2      47.5
+    2017-05-12    1      2    S     54 -14   0.0             0       0.0
+    2017-05-13    1      2    B     48 -14   0.0             2      48.0
+    2017-05-14    1      2    S     30 -50   0.0             0       0.0
+    2017-05-15    1      2    S     63 -50   0.0            -2      63.0
+    2017-05-16    1      2    S     56 -50  14.0            -4      59.5
     """
     todays_date = datetime.datetime.now().date()
     index = pd.date_range(todays_date-datetime.timedelta(10), periods=10, freq='D')
@@ -62,14 +62,20 @@ def dummy_dataframe():
                     df['avgPrice'][i]=df['avgPrice'][i-1]
             if abs(df['openposition'][i-1])-abs(df['openposition'][i])>0:
                 if df['openposition'][i-1]>0:
-                    df['re'][i]=(df['price'][i]-df['avgPrice'][i-1])*(df['share'][i])+df['re'][i-1]
+                    df['re'][i]=((df['price'][i]-df['avgPrice'][i-1])*(df['share'][i]))+df['re'][i-1]
                 elif df['openposition'][i-1]<0:
-                    df['re'][i]=(df['avgPrice'][i]-df['price'][i-1])*(df['share'][i])+df['re'][i-1]
+                    df['re'][i]=((df['avgPrice'][i-1]-df['price'][i])*(df['share'][i]))+df['re'][i-1]
+                else:
+                    df['re'][i]=df['re'][i-1]
             if abs(df['openposition'][i-1])-abs(df['openposition'][i])<0:
                 if df['openposition'][i-1]>0:
                     df['unre'][i]=(df['price'][i]-df['avgPrice'][i-1])*(df['share'][i])
+                    df['re'][i]=df['re'][i-1]
                 elif df['openposition'][i-1]<0:
-                    df['unre'][i]=(df['avgPrice'][i]-df['price'][i-1])*(df['share'][i])
+                    df['unre'][i]=(df['avgPrice'][i-1]-df['price'][i])*(df['share'][i])
+                    df['re'][i]=df['re'][i-1]
+                else:
+                    df['re'][i]=df['re'][i-1]
     return df
 
 class StrategPerformance(object):
