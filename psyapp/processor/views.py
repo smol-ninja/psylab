@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from .serializers import StrategySerializer, TickerSerializer, IndicatorsSerializer
 from .models import Strategy, Ticker, Indicators, Backtests
 from slp import NLPService
+from engine.drivers.feedapi import fetch_price_list
 
 # Create your views here.l
 @api_view(['POST', 'GET', 'PUT', 'DELETE'])
@@ -75,6 +76,20 @@ def indicator_view(request):
         indicators_list = Indicators.objects.all()
         il = IndicatorsSerializer(indicators_list, many=True)
         return Response(status=200, data=il.data)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def test_view(request):
+    if request.method == 'GET' and request.query_params['key']=='hexagon':
+        secId=request.data['sid']
+        datefrom=request.data['from']
+        dateto=request.data['to']
+        frequency=request.data['frequency']
+        fetched_data = fetch_price_list(secId, datefrom, dateto, frequency)
+        return Response(status=200, data=fetched_data)
+    else:
+        return Response(status=404, data='Not available')
 
 @api_view(['POST'])
 @login_required

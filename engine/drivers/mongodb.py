@@ -8,7 +8,7 @@ client = MongoClient()
 db = client.tickdata
 
 def create_uin():
-    csvFile = open('uin.csv')
+    csvFile = open('/home/man15h/Work/Repos/psylab/engine/drivers/uin.csv')
     csvReader = csv.reader(csvFile)
     data = list(csvReader)
     data=sorted(data, key=lambda x: x[0], reverse=False)
@@ -118,6 +118,8 @@ def create_sid(ticker,fyear):
         except Exception as e:
             if symbol[0] in ['BANKNIFTY','NIFTY']:
                 sid=symbol[0]
+            else:
+                pass
         if "III" in ticker[0]:
             expiry='three'
             sid=sid+'III'
@@ -139,8 +141,8 @@ def create_sid(ticker,fyear):
         else:
             sid+='CE'
         sid+=ticker[1]+(str(abbr_to_num[ticker[2].title()])+fyear+ticker[3])
-    elif len(ticker)!=5 and ticker[0]!='Ticker':
-        sid+='3'
+    # elif len(ticker)!=5 and ticker[0]!='Ticker':
+    #     sid+='3'
     return sid
 
 def write_mongo(data,row,ticker_col,fyear):
@@ -148,38 +150,41 @@ def write_mongo(data,row,ticker_col,fyear):
     Usage: Write data in MongoDB
     Create SID using create_sid function
     """
-    sid=create_sid(ticker_col,fyear)
-    previous_date=None
-    current_date=(data[row][1].replace("/",""))
-    current_time=(data[row][2].replace(":",""))
-    if current_time[0]=='9':
-        current_time='0'+current_time
     try:
         symTyp=data[row][0].split('-')
     except Exception as e:
         pass
     if symTyp[len(symTyp)-1]=='I':
-        openValue=data[row][3]
-        highValue=data[row][4]
-        lowValue=data[row][5]
-        closeValue=data[row][6]
-        volume=data[row][7]
-        openInterest=data[row][8]
-        if 1<=row:
-            previous_date=(data[row-1][1].replace("/",""))
-            if db.ticker.find_one({ "_id":sid}):
-                if is_date(current_date,previous_date):
+        try:
+            sid=create_sid(ticker_col,fyear)
+            previous_date=None
+            current_date=(data[row][1].replace("/",""))
+            current_time=(data[row][2].replace(":",""))
+            if current_time[0]=='9':
+                current_time='0'+current_time
+            print data[row]
+            openValue=data[row][3]
+            highValue=data[row][4]
+            lowValue=data[row][5]
+            closeValue=data[row][6]
+            volume=data[row][7]
+            openInterest=data[row][8]
+            if 1<=row:
+                previous_date=(data[row-1][1].replace("/",""))
+                if db.ticker.find_one({ "_id":sid}):
+                    if is_date(current_date,previous_date):
+                        insert_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
+                    else:
+                        update_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
+                elif db.ticker.find_one({ "_id":sid}) is None:
+                    insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
+            else:
+                if db.ticker.find_one({ "_id":sid}):
                     insert_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
-                else:
-                    update_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
-            elif db.ticker.find_one({ "_id":sid}) is None:
-                insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
-        else:
-            if db.ticker.find_one({ "_id":sid}):
-                insert_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
-            elif db.ticker.find_one({ "_id":sid}) is None:
-                insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
-
+                elif db.ticker.find_one({ "_id":sid}) is None:
+                    insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
+        except Exception as e:
+            pass
 def write_ticker():
     """
     Check if symbol_sid collection exists, if not then create

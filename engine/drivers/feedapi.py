@@ -22,6 +22,7 @@ def fetch_secId(symbol, securityType='stock', optionType=None, strikePrice=None,
             symbol=symbol+'-II'
         result=db.symbol_sid.find_one({'symbol':symbol})
     return result
+
 def fetch_price(secId, datetime, frequency):
     """
 	Take securityid and datetime as input.
@@ -34,6 +35,7 @@ def fetch_price(secId, datetime, frequency):
 	case 4: freq = weekly, fetch price on every monday at 15:30
     """
     return fetch_data(secId, datetime, frequency,'closeValue')
+
 def fetch_data(secId, datetime, frequency, objectType="closeValue"):
     """
 	a generalized fucntion which can take "close_price"
@@ -68,6 +70,7 @@ def fetch_data(secId, datetime, frequency, objectType="closeValue"):
         except Exception as e:
             pass
     # TODO: weekly
+
 def fetch_price_list(secId, datefrom, dateto, frequency):
     """
     a generalized fucntion which return all the close price
@@ -131,6 +134,7 @@ def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
             if len(timeArr):
                 arr.append(timeArr)
         return arr
+        
 # print fetch_secId('ACC','future',None,None,'current')
 # print fetch_price('101','2014-09-03T12:15:59','minute') ---> 1479.3
 # print fetch_data('101','2014-09-03T12:15:59','daily','closeValue') ---> 1467

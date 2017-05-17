@@ -31,8 +31,8 @@ def dummy_dataframe():
     df['side']=df['side'].apply(lambda v: random.choice(['B','S']))
     df['price']=df['price'].apply(lambda v: randint(20,100))
     df['openposition']=0
-    df['unre']=0
-    df['avgPrice']=0
+    df['unre']=0.0
+    df['avgPrice']=0.0
     for i in range (0,len(df.index)):
         if i==0:
             df.loc[:,'re']=0
@@ -43,6 +43,7 @@ def dummy_dataframe():
                 df['openposition'][0]=-df['share'][0]
                 df['avgPrice'][0]=float(df['price'][0])
         else:
+            # import pdb; pdb.set_trace()
             if df['side'][i]=='B':
                 df['openposition'][i]=df['openposition'][i-1]+df['share'][i]
                 if df['openposition'][i]>0:
@@ -109,7 +110,7 @@ class StrategPerformance(object):
 
     def max_drawdown(self):
         return np.max(np.maximum.accumulate(self.daily_return) - self.daily_return)
-        
+
 df=dummy_dataframe()
 print df
 # sp=StrategPerformance(df)
