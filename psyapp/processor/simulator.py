@@ -36,8 +36,8 @@ class StrategyCriterion(object):
 
     def __init__(self, enter_criterion=None, exit_criterion=None, stop_loss=None, profit_booking=None):
         """
-        enter_criterion: <type str> 'ema(20) >= sma(10) and/or ema(20) >= sma(10)'
-        exit_criterion: <type str> 'ema(20) >= sma(10) and/or ema(20) >= sma(10)'
+        buy_criterion: <type str> 'ema(20) >= sma(10) and/or ema(20) >= sma(10)'
+        sell_criterion: <type str> 'ema(20) >= sma(10) and/or ema(20) >= sma(10)'
         stop_loss: <type %>
         profit_booking: <type %>
 
@@ -69,7 +69,10 @@ class StrategyCriterion(object):
         self.criterion_dict.update({'enter_criterion': self.parse_criterion(enter_criterion)})
         self.criterion_dict.update({'exit_criterion': self.parse_criterion()(exit_criterion)})
 
-    def parse_criterion(criterion):
+    def parse_criterion(self, criterion):
+        if criterion == None:
+            return None
+
         criterion = criterion.lower().strip()
         """
         if or/and is absent, [[criterion]]
@@ -96,6 +99,8 @@ class StrategyCriterion(object):
                 continue
         if split_criterion == None:
             raise Exception('Could not decode strategy operators')
+
+StrategyCriterion(enter_criterion='ema(20) >= ema(10) or sma(20) >= sma(10) and ema(20) >= ema(10) or sma(20) >= sma(10) or ema(20) >= ema(10) and sma(20) >= sma(10)', stop_loss=10, profit_booking=10)
 
 class StrategPerformance(object):
     def __init__(self):

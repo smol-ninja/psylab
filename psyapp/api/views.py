@@ -1,19 +1,51 @@
-from django.shortcuts import render
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework import permissions
+from rest_framework.response import Response
+
+from .models import Subscriber
 
 from engine.drivers.feedapi import fetch_price_list
-# Create your views here.
 
-
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([permissions.AllowAny])
-def test_view(request):
-    if request.method == 'GET' and request.query_params=='hexagon':
+def subscriber_view(request):
+    if request.method == 'POST':
+        try:
+            s = Subscriber.objects.get(subscriber=request.data['email'])
+            return Response(status=302)
+        except:
+            s = Subscriber.objects.create(subscriber=request.data['email'])
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def fetch_view(request):
+    """
+    It will return an array of price.
+    Url: /api/fetch/?key=hexagon
+    Input:
+        {
+    	"sid": "INE069A01017",
+    	"from": "2014-09-25",
+    	"to": "2017-01-10",
+    	"frequency": "daily"
+        }
+    return: [
+          "1661.55",
+          "1754.25",
+          "1784.55",
+          "1709.8"
+        ]
+    """
+    # import pdb; pdb.set_trace()
+    if request.method == 'POST' and request.query_params['key']=='hexagon':
         secId=request.data['sid']
         datefrom=request.data['from']
         dateto=request.data['to']
         frequency=request.data['frequency']
-        fetched_data = fetch_price_list(secId, datefrom, dateto, frequency)
-        ts = TickerSerializer(ticker_lists, many=True)
-        return Response(status=200, data=fetched_data)
+        try:
+            fetched_data = fetch_price_list(secId, datefrom, dateto, frequency)
+            return Response(status=200, data=fetched_data)
+        except Exception as e:
+            return Response(status=404)
     else:
         return Response(status=404, data='Not available')

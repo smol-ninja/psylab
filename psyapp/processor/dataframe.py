@@ -62,9 +62,9 @@ def dummy_dataframe():
                     df['avgPrice'][i]=df['avgPrice'][i-1]
             if abs(df['openposition'][i-1])-abs(df['openposition'][i])>0:
                 if df['openposition'][i-1]>0:
-                    df['re'][i]=(df['price'][i]-df['avgPrice'][i-1])*(df['share'][i])
+                    df['re'][i]=(df['price'][i]-df['avgPrice'][i-1])*(df['share'][i])+df['re'][i-1]
                 elif df['openposition'][i-1]<0:
-                    df['re'][i]=(df['avgPrice'][i]-df['price'][i-1])*(df['share'][i])
+                    df['re'][i]=(df['avgPrice'][i]-df['price'][i-1])*(df['share'][i])+df['re'][i-1]
             if abs(df['openposition'][i-1])-abs(df['openposition'][i])<0:
                 if df['openposition'][i-1]>0:
                     df['unre'][i]=(df['price'][i]-df['avgPrice'][i-1])*(df['share'][i])

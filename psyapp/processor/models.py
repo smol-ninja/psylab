@@ -33,8 +33,10 @@ class Ticker(models.Model):
 class Strategy(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=30, blank=True, null=False)
-    strategy = models.CharField(max_length=999, blank=True, null=True)
-    decoded_strategy = models.CharField(max_length=999, blank=True, null=True)
+    buy_strategy = models.CharField(max_length=999, blank=True, null=True)
+    decoded_buy_strategy = models.CharField(max_length=999, blank=True, null=True)
+    sell_strategy = models.CharField(max_length=999, blank=True, null=True)
+    decoded_sell_strategy = models.CharField(max_length=999, blank=True, null=True)
     ticker = models.ForeignKey(Ticker, on_delete=models.CASCADE, null=True)
     trade_frequency = models.CharField(max_length=10, choices=TRADE_FREQUENCY_CHOICES, default=DAY)
     stop_loss = models.FloatField(null=True)

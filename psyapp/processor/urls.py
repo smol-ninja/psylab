@@ -7,6 +7,5 @@ urlpatterns = [
     url(r'^eng/(?P<pk>[0-9]+)/$', strategy_view, name='strategy'),
     url(r'^tickers', ticker_view, name='ticker'),
     url(r'^indicators', indicator_view, name='indicators'),
-    url(r'^backtest', backtest_view, name='backtests'),
-    url(r'^fetch/(?P<key>[0-9a-z]+)/$'), test_view, name='test')
+    url(r'^backtest', backtest_view, name='backtests')
 ]

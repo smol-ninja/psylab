@@ -13,6 +13,8 @@ from .serializers import StrategySerializer, TickerSerializer, IndicatorsSeriali
 from .models import Strategy, Ticker, Indicators, Backtests
 from slp import NLPService
 from engine.drivers.feedapi import fetch_price_list
+from .dataset import Dataset
+# from .simulator import StrategyCriterion, StrategPerformance, StrategySimulator
 
 # Create your views here.l
 @api_view(['POST', 'GET', 'PUT', 'DELETE'])
@@ -78,19 +80,6 @@ def indicator_view(request):
         return Response(status=200, data=il.data)
 
 
-@api_view(['GET'])
-@permission_classes([permissions.AllowAny])
-def test_view(request):
-    if request.method == 'GET' and request.query_params['key']=='hexagon':
-        secId=request.data['sid']
-        datefrom=request.data['from']
-        dateto=request.data['to']
-        frequency=request.data['frequency']
-        fetched_data = fetch_price_list(secId, datefrom, dateto, frequency)
-        return Response(status=200, data=fetched_data)
-    else:
-        return Response(status=404, data='Not available')
-
 @api_view(['POST'])
 @login_required
 def backtest_view(request):
@@ -112,7 +101,7 @@ def backtest_view(request):
         strategy_id = request.data['strategy_id']
         strategy = Strategy.objects.get(user=request.user, pk=strategy_id)
         trade_quantity = int(request.data['quantity'])
-        trade_frequency = request.data['frequency']
+        trade_frequency = request.data['frequency'].lower()
         start = request.data['start_time']
         end = request.data['end_time']
         start_year, start_month, start_date = [int(i) for i in start.split('-')]
@@ -153,4 +142,8 @@ def backtest_view(request):
                 start=start,
                 end=end
         )
+
+        dataset = Dataset(secId=ticker.uin, from_date=start.strftime('%Y-%m-%d'), to_date=end.strftime('%Y-%m-%d'), frequency=trade_frequency)
+        strategy_criterion = StrategyCriterion(enter_criterion=strategy.decoded_buy_strategy, exit_criterion=strategy.decoded_sell_strategy, profit_booking=strategy.profit_booking, stop_loss=strategy.stop_loss)
+
         return Response(status=200, data={'backtestId': buid})

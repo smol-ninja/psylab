@@ -79,6 +79,7 @@ def fetch_price_list(secId, datefrom, dateto, frequency):
     """
     return fetch_data_list(secId, datefrom, dateto, frequency,'closeValue')
 
+
 def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
     """
 	a generalized fucntion which can take "close_price"
@@ -89,6 +90,7 @@ def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
 	"""
     secid=str(secId)
     cursor=db.ticker.find_one({"_id":secid})
+    # import pdb; pdb.set_trace()
     obj=cursor['ticker']
     hourArr=['091559','101559','111559','121559','131559','141559','151559']
     dFrom=dateutil.parser.parse(datefrom)
@@ -134,7 +136,7 @@ def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
             if len(timeArr):
                 arr.append(timeArr)
         return arr
-        
+
 # print fetch_secId('ACC','future',None,None,'current')
 # print fetch_price('101','2014-09-03T12:15:59','minute') ---> 1479.3
 # print fetch_data('101','2014-09-03T12:15:59','daily','closeValue') ---> 1467
