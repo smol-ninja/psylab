@@ -15,7 +15,7 @@ def subscriber_view(request):
             return Response(status=302)
         except:
             s = Subscriber.objects.create(subscriber=request.data['email'])
-        return Response(status=200)
+            return Response(status=200)
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
