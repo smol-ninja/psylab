@@ -1,51 +1,83 @@
+from __future__ import division
 import datetime
 import pandas as pd
 import random
 from random import randint
 import numpy as np
 
-todays_date = datetime.datetime.now().date()
 
-index = pd.date_range(todays_date-datetime.timedelta(10), periods=10, freq='D')
+def dummy_dataframe():
+    """
+    Input: Nothing, this function will create a dummy dataframe of orders of size 10
+    return:
+                sid  share side  price  re  unre  openposition  avgPrice
+    2017-05-07    1      2    B     23   0   0.0             2      23.0
+    2017-05-08    1      2    S     30  14   0.0             0       0.0
+    2017-05-09    1      2    B     29  14   0.0             2      29.0
+    2017-05-10    1      2    B     66  14  74.0             4      47.5
+    2017-05-11    1      2    S     27 -27   0.0             2      47.5
+    2017-05-12    1      2    S     54 -14   0.0             0       0.0
+    2017-05-13    1      2    B     48 -14   0.0             2      48.0
+    2017-05-14    1      2    S     30 -50   0.0             0       0.0
+    2017-05-15    1      2    S     63 -50   0.0            -2      63.0
+    2017-05-16    1      2    S     56 -50  14.0            -4      59.5
+    """
+    todays_date = datetime.datetime.now().date()
+    index = pd.date_range(todays_date-datetime.timedelta(10), periods=10, freq='D')
+    columns = ['sid','share', 'side','price','re','unre', 'openposition','avgPrice']
+    df= pd.DataFrame(index=index, columns=columns)
+    df['sid']=1
+    df['share']=randint(1,10)
+    df['side']=df['side'].apply(lambda v: random.choice(['B','S']))
+    df['price']=df['price'].apply(lambda v: randint(20,100))
+    df['openposition']=0
+    df['unre']=0.0
+    df['avgPrice']=0.0
+    for i in range (0,len(df.index)):
+        if i==0:
+            df.loc[:,'re']=0
+            if df['side'][0]=='B':
+                df['openposition'][0]=df['share'][0]
+                df['avgPrice'][0]=float(df['price'][0])
+            elif df['side'][0]=='S':
+                df['openposition'][0]=-df['share'][0]
+                df['avgPrice'][0]=float(df['price'][0])
+        else:
+            # import pdb; pdb.set_trace()
+            if df['side'][i]=='B':
+                df['openposition'][i]=df['openposition'][i-1]+df['share'][i]
+                if df['openposition'][i]>0:
+                    df['avgPrice'][i]=(df['avgPrice'][i-1]*df['openposition'][i-1]+df['share'][i]*df['price'][i])/df['openposition'][i]
+                elif df['openposition'][i]==0:
+                    df['avgPrice'][i]=0
+                else:
+                    df['avgPrice'][i]=df['avgPrice'][i-1]
+            if df['side'][i]=='S':
+                df['openposition'][i]=df['openposition'][i-1]-df['share'][i]
+                if df['openposition'][i]<0:
+                    df['avgPrice'][i]=(abs(df['avgPrice'][i-1]*df['openposition'][i-1])+df['share'][i]*df['price'][i])/abs(df['openposition'][i])
+                elif df['openposition'][i]==0:
+                    df['avgPrice'][i]=0
+                else:
+                    df['avgPrice'][i]=df['avgPrice'][i-1]
+            if abs(df['openposition'][i-1])-abs(df['openposition'][i])>0:
+                if df['openposition'][i-1]>0:
+                    df['re'][i]=((df['price'][i]-df['avgPrice'][i-1])*(df['share'][i]))+df['re'][i-1]
+                elif df['openposition'][i-1]<0:
+                    df['re'][i]=((df['avgPrice'][i-1]-df['price'][i])*(df['share'][i]))+df['re'][i-1]
+                else:
+                    df['re'][i]=df['re'][i-1]
+            if abs(df['openposition'][i-1])-abs(df['openposition'][i])<0:
+                if df['openposition'][i-1]>0:
+                    df['unre'][i]=(df['price'][i]-df['avgPrice'][i-1])*(df['share'][i])
+                    df['re'][i]=df['re'][i-1]
+                elif df['openposition'][i-1]<0:
+                    df['unre'][i]=(df['avgPrice'][i-1]-df['price'][i])*(df['share'][i])
+                    df['re'][i]=df['re'][i-1]
+                else:
+                    df['re'][i]=df['re'][i-1]
+    return df
 
-columns = ['sid','share', 'side','price','re','openvalue', 'openposition','avgPrice']
-df= pd.DataFrame(index=index, columns=columns)
-df['sid']=1
-df['share']=randint(1,10)
-df['side']=df['side'].apply(lambda v: random.choice(['B','S']))
-df['price']=df['price'].apply(lambda v: randint(20,100))
-df['openposition']=0
-df['avgPrice']=0
-for i in range (0,len(df.index)):
-    if i==0:
-        df.loc[:,'re']=0
-        if df['side'][0]=='B':
-            df['openposition'][0]=-df['share'][0]
-            df['openvalue'][0]=df['share'][0]*df['price'][0]
-        elif df['side'][0]=='S':
-            df['openposition'][0]=df['share'][0]
-            df['openvalue'][0]=-df['share'][0]*df['price'][0]
-            df['avgPrice'][0]=df['price'][0]
-    else:
-        if df['side'][i]=='B':
-            df['openposition'][i]=df['openposition'][i-1]-df['share'][i]
-            df['openvalue'][i]=df['openvalue'][i-1]+df['share'][i]*df['price'][i]
-            if df['openposition'][i]>0:
-                df['re'][i]=df['share'][i]*(df['avgPrice'][i]-df['price'][i])
-                df['avgPrice'][i]=df['avgPrice'][i-1]
-            elif df['openposition'][i]==0:
-                df['avgPrice'][i]=0
-                df['re'][i]=df['share'][i]*(df['avgPrice'][i]-df['price'][i])
-        elif df['side'][i]=='S':
-            df['openposition'][i]=df['openposition'][i-1]+df['share'][i]
-            df['openvalue'][i]=df['openvalue'][i-1]-df['share'][i]*df['price'][i]
-            if df['openposition'][i]==0:
-                df['avgPrice'][i]=df['price'][i]
-            elif df['openposition'][i-1]>0:
-                    df['avgPrice'][i]=float(df['openposition'][i-1]*df['avgPrice'][i-1]+df['share'][i]*df['price'][i])/float(df['openposition'][i])
-            else:
-                df['avgPrice'][i]==0
-print df
 class StrategPerformance(object):
     def __init__(self, df):
         self.df=df
@@ -84,5 +116,8 @@ class StrategPerformance(object):
 
     def max_drawdown(self):
         return np.max(np.maximum.accumulate(self.daily_return) - self.daily_return)
-sp=StrategPerformance(df)
-print sp.annualized_return(), sp.annualized_std(), sp.annualized_downside_std(), sp.annual_vol(), sp.sharpe_ratio()
+
+df=dummy_dataframe()
+print df
+# sp=StrategPerformance(df)
+# print sp.annualized_return(), sp.annualized_std(), sp.annualized_downside_std(), sp.annual_vol(), sp.sharpe_ratio()

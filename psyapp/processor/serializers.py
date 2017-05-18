@@ -6,7 +6,7 @@ from users.serializers import UserSerializer
 class TickerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticker
-        fields = ('symbol', 'exchange')
+        fields = ('symbol', 'exchange', 'uin')
 
 class StrategySerializer(serializers.ModelSerializer):
     ticker = TickerSerializer(many=False)
