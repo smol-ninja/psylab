@@ -70,6 +70,22 @@ def ticker_view(request):
         ts = TickerSerializer(ticker_lists, many=True)
         return Response(status=200, data=ts.data)
 
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def fetch_sid_view(request):
+    """
+    It will return sid corresponding to symbol.
+    Url: /api/sid
+    """
+    if request.method == 'POST':
+        try:
+            ticker = Ticker.objects.get(symbol=request.data['symbol'])
+            ticker=TickerSerializer(ticker, many=False)
+            return Response(status=200, data=ticker.data)
+        except Exception as e:
+            return Response(status=404, data={'error': e.message})
+
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def indicator_view(request):

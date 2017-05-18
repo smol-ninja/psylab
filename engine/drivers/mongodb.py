@@ -8,7 +8,10 @@ client = MongoClient()
 db = client.tickdata
 
 def create_uin():
-    csvFile = open('/home/man15h/Work/Repos/psylab/engine/drivers/uin.csv')
+    """
+    Usage: To write symbol and Uin into MongoDB
+    """
+    csvFile = open('backdata/uin.csv')
     csvReader = csv.reader(csvFile)
     data = list(csvReader)
     data=sorted(data, key=lambda x: x[0], reverse=False)
@@ -199,7 +202,7 @@ def write_ticker():
     Normal check to reconstruct Symbol and valid strike price
     Call write_mongo function
     """
-    path=('/home/man15h/Work/Repos/psylab/engine/drivers/*.csv')
+    path=('backdata/*.csv')
     for fname in glob.glob(path):
         if fname=='uin.csv':
             pass
