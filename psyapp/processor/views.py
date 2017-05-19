@@ -3,6 +3,12 @@ import base64
 import hashlib
 import pytz
 from datetime import datetime
+from dateutil import parser
+
+import pandas as pd
+import random
+from random import randint
+import numpy as np
 
 from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view, permission_classes
@@ -13,6 +19,7 @@ from .serializers import StrategySerializer, TickerSerializer, IndicatorsSeriali
 from .models import Strategy, Ticker, Indicators, Backtests
 from slp import NLPService
 from .dataset import Dataset
+from .simulator import StrategyPerformance
 # from .simulator import StrategyCriterion, StrategPerformance, StrategySimulator
 
 # Create your views here.l
@@ -94,6 +101,81 @@ def indicator_view(request):
         il = IndicatorsSerializer(indicators_list, many=True)
         return Response(status=200, data=il.data)
 
+def dummy_dataframe(start, end):
+    """
+    Input: Nothing, this function will create a dummy dataframe of orders of size 10
+    return:
+                sid  share side  price  re  unre  openposition  avgPrice
+    2017-05-07    1      2    B     23   0   0.0             2      23.0
+    2017-05-08    1      2    S     30  14   0.0             0       0.0
+    2017-05-09    1      2    B     29  14   0.0             2      29.0
+    2017-05-10    1      2    B     66  14  74.0             4      47.5
+    2017-05-11    1      2    S     27 -27   0.0             2      47.5
+    2017-05-12    1      2    S     54 -14   0.0             0       0.0
+    2017-05-13    1      2    B     48 -14   0.0             2      48.0
+    2017-05-14    1      2    S     30 -50   0.0             0       0.0
+    2017-05-15    1      2    S     63 -50   0.0            -2      63.0
+    2017-05-16    1      2    S     56 -50  14.0            -4      59.5
+    """
+    start=start.strftime("%Y-%m-%d")
+    end=end.strftime("%Y-%m-%d")
+    start = datetime.strptime(start, "%Y-%m-%d").date()
+    end = datetime.strptime(end, "%Y-%m-%d").date()
+    print start, end
+    index = pd.date_range(start, periods=((end-start).days)+1, freq='D')
+    columns = ['sid','share', 'side','price','re','unre', 'openposition','avgPrice']
+    df= pd.DataFrame(index=index, columns=columns)
+    df['sid']=1
+    df['share']=randint(1,10)
+    df['side']=df['side'].apply(lambda v: random.choice(['B','S']))
+    df['price']=df['price'].apply(lambda v: randint(20,100))
+    df['openposition']=0
+    df['unre']=0.0
+    df['avgPrice']=0.0
+    for i in range (0,len(df.index)):
+        if i==0:
+            df.loc[:,'re']=0
+            if df['side'][0]=='B':
+                df['openposition'][0]=df['share'][0]
+                df['avgPrice'][0]=float(df['price'][0])
+            elif df['side'][0]=='S':
+                df['openposition'][0]=-df['share'][0]
+                df['avgPrice'][0]=float(df['price'][0])
+        else:
+            # import pdb; pdb.set_trace()
+            if df['side'][i]=='B':
+                df['openposition'][i]=df['openposition'][i-1]+df['share'][i]
+                if df['openposition'][i]>0:
+                    df['avgPrice'][i]=(df['avgPrice'][i-1]*df['openposition'][i-1]+df['share'][i]*df['price'][i])/df['openposition'][i]
+                elif df['openposition'][i]==0:
+                    df['avgPrice'][i]=0
+                else:
+                    df['avgPrice'][i]=df['avgPrice'][i-1]
+            if df['side'][i]=='S':
+                df['openposition'][i]=df['openposition'][i-1]-df['share'][i]
+                if df['openposition'][i]<0:
+                    df['avgPrice'][i]=(abs(df['avgPrice'][i-1]*df['openposition'][i-1])+df['share'][i]*df['price'][i])/abs(df['openposition'][i])
+                elif df['openposition'][i]==0:
+                    df['avgPrice'][i]=0
+                else:
+                    df['avgPrice'][i]=df['avgPrice'][i-1]
+            if abs(df['openposition'][i-1])-abs(df['openposition'][i])>0:
+                if df['openposition'][i-1]>0:
+                    df['re'][i]=((df['price'][i]-df['avgPrice'][i-1])*(df['share'][i]))+df['re'][i-1]
+                elif df['openposition'][i-1]<0:
+                    df['re'][i]=((df['avgPrice'][i-1]-df['price'][i])*(df['share'][i]))+df['re'][i-1]
+                else:
+                    df['re'][i]=df['re'][i-1]
+            if abs(df['openposition'][i-1])-abs(df['openposition'][i])<0:
+                if df['openposition'][i-1]>0:
+                    df['unre'][i]=(df['price'][i]-df['avgPrice'][i-1])*(df['share'][i])
+                    df['re'][i]=df['re'][i-1]
+                elif df['openposition'][i-1]<0:
+                    df['unre'][i]=(df['avgPrice'][i-1]-df['price'][i])*(df['share'][i])
+                    df['re'][i]=df['re'][i-1]
+                else:
+                    df['re'][i]=df['re'][i-1]
+    return df
 
 @api_view(['POST'])
 @login_required
@@ -121,7 +203,6 @@ def backtest_view(request):
         end = request.data['end_time']
         start_year, start_month, start_date = [int(i) for i in start.split('-')]
         end_year, end_month, end_date = [int(i) for i in end.split('-')]
-
         if start > end:
             return Response(status=405, data={'error': 'start date cannot be greater than end data.'})
         else:
@@ -158,7 +239,23 @@ def backtest_view(request):
                 end=end
         )
 
-        dataset = Dataset(secId=ticker.uin, from_date=start.strftime('%Y-%m-%d'), to_date=end.strftime('%Y-%m-%d'), frequency=trade_frequency)
-        strategy_criterion = StrategyCriterion(enter_criterion=strategy.decoded_buy_strategy, exit_criterion=strategy.decoded_sell_strategy, profit_booking=strategy.profit_booking, stop_loss=strategy.stop_loss)
-
-        return Response(status=200, data={'backtestId': buid})
+        # dataset = Dataset(secId=ticker.uin, from_date=start.strftime('%Y-%m-%d'), to_date=end.strftime('%Y-%m-%d'), frequency=trade_frequency)
+        # strategy_criterion = StrategyCriterion(enter_criterion=strategy.decoded_buy_strategy, exit_criterion=strategy.decoded_sell_strategy, profit_booking=strategy.profit_booking, stop_loss=strategy.stop_loss)
+        stats={}
+        df=dummy_dataframe(start, end)
+        sp=StrategyPerformance(df)
+        stats={'anualized_return':round(sp.annualized_return(), 3),
+               'anualized_standard':round(sp.annualized_std(), 3),
+               'anualized_downside_standard':round(sp.annualized_downside_std(), 3),
+               'anual_volume':round(sp.annual_vol(), 3),
+               'sharpe_ratio':round(sp.sharpe_ratio(), 3),
+               'sortino_ratio':round(sp.sortino_ratio(), 3),
+               'max_drawdown':round(sp.max_drawdown(), 3),
+               'realized_profit':df['re'],
+               'unrealized_profit':df['unre'],
+               'order_history':df['openposition'],
+               'backtestId': buid
+               }
+        # import pdb; pdb.set_trace()
+        # return Response(status=200, data={'backtestId': buid})
+        return Response(status=200, data=stats)
