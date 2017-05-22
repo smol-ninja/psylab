@@ -4,3 +4,5 @@ backdata/
 env/
 engine/drivers/*.csv
 engine/drivers/*.csv#
+psyapp/processor/dataframe.py
+*.swp
