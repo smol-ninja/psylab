@@ -3,15 +3,16 @@ import itertools
 import calendar
 import glob
 from pymongo import MongoClient
+from os.path import dirname, realpath
 
 client = MongoClient()
 db = client.tickdata
-
+dir_path=dirname(realpath(__file__))
 def create_uin():
     """
     Usage: To write symbol and Uin into MongoDB
     """
-    csvFile = open('backdata/uin.csv')
+    csvFile = open(dir_path+'/../../backdata/uin.csv')
     csvReader = csv.reader(csvFile)
     data = list(csvReader)
     data=sorted(data, key=lambda x: x[0], reverse=False)
@@ -202,7 +203,7 @@ def write_ticker():
     Normal check to reconstruct Symbol and valid strike price
     Call write_mongo function
     """
-    path=('backdata/*.csv')
+    path=(dir_path+'/../../backdata/*.csv')
     num_files=len(glob.glob(path))
     for fname in glob.glob(path):
         print num_files
