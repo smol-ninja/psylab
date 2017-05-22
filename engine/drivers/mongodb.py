@@ -11,12 +11,12 @@ def create_uin():
     """
     Usage: To write symbol and Uin into MongoDB
     """
-    csvFile = open('backdata/uin.csv')
+    csvFile = open('/home/man15h/Work/Repos/psylab/engine/drivers/uin.csv')
     csvReader = csv.reader(csvFile)
     data = list(csvReader)
     data=sorted(data, key=lambda x: x[0], reverse=False)
     for row in range(0,len(data)):
-        print data[row]
+        # print data[row]
         db.uin.insert_one({
             "symbol":data[row][0],
             "sid":data[row][2]
@@ -26,7 +26,7 @@ def insert_sid_data(sid=None,date=None,timeValue=None,openValue=None,highValue=N
     """
     Usage: Inserting sid document in ticker collection
     """
-    print "inserting data"
+    # print "inserting data"
     db.ticker.insert_one({
         "_id":sid,
         "ticker":{
@@ -44,7 +44,7 @@ def insert_sid_data(sid=None,date=None,timeValue=None,openValue=None,highValue=N
     })
 
 def insert_datetime_data(sid=None,date=None,timeValue=None,openValue=None,highValue=None,lowValue=None,closeValue=None,volume=None,openInterest=None):
-    print "inserting Datedata"
+    # print "inserting Datedata"
     """
     Usage: Inserting datetime document or updating sid document in ticker collection
     """
@@ -64,7 +64,7 @@ def insert_datetime_data(sid=None,date=None,timeValue=None,openValue=None,highVa
     })
 
 def update_datetime_data(sid=None,date=None,timeValue=None,openValue=None,highValue=None,lowValue=None,closeValue=None,volume=None,openInterest=None):
-    print "updating data"
+    # print "updating data"
     """
     Usage: Inserting time field or updating datetime document or
     updating sid document in ticker collection
@@ -165,7 +165,7 @@ def write_mongo(data,row,ticker_col,fyear):
             current_time=(data[row][2].replace(":",""))
             if current_time[0]=='9':
                 current_time='0'+current_time
-            print data[row]
+            # print data[row]
             openValue=data[row][3]
             highValue=data[row][4]
             lowValue=data[row][5]
@@ -202,11 +202,12 @@ def write_ticker():
     Normal check to reconstruct Symbol and valid strike price
     Call write_mongo function
     """
-    path=('backdata/*.csv')
+    path=('/home/man15h/Work/Repos/psylab/engine/drivers/*.csv')
+    num_files=len(glob.glob(path))
     for fname in glob.glob(path):
-        if fname=='uin.csv':
-            pass
-        print "file open", (fname)
+        print num_files
+        num_files-=1
+        # print "file open", (fname)
         csvFile = open(fname)
         fyear=fname[-8:-4]
         csvReader = csv.reader(csvFile)
@@ -216,20 +217,23 @@ def write_ticker():
             # import pdb; pdb.set_trace()
             ticker_col=["".join(x) for _, x in itertools.groupby(data[row][0], key=str.isdigit)]
             len_ticker=len(ticker_col)
-            if ticker_col[len_ticker-1]=='PE' or ticker_col[len_ticker-1]=='CE':
-                # if 6<len_ticker:
-                #     for i in range (0,len(ticker_col)):
-                #         if ticker_col[i]=='.':
-                #             ticker_col[i-1:i+2] = [''.join(ticker_col[i-1:i+2])]
-                #             break
-                #     if 6<=len(ticker_col):
-                #         ticker_col[0:len(ticker_col)-4]=[''.join(ticker_col[0:len(ticker_col)-4])]
-                # write_mongo(data,row,ticker_col,fyear)
-                pass
-            else:
-                ticker_col[0:len(ticker_col)]=[''.join(ticker_col[0:len(ticker_col)])]
-                write_mongo(data,row,ticker_col,fyear)
-        csvFile.close()
+            try:
+                if ticker_col[len_ticker-1]=='PE' or ticker_col[len_ticker-1]=='CE':
+                    # if 6<len_ticker:
+                    #     for i in range (0,len(ticker_col)):
+                    #         if ticker_col[i]=='.':
+                    #             ticker_col[i-1:i+2] = [''.join(ticker_col[i-1:i+2])]
+                    #             break
+                    #     if 6<=len(ticker_col):
+                    #         ticker_col[0:len(ticker_col)-4]=[''.join(ticker_col[0:len(ticker_col)-4])]
+                    # write_mongo(data,row,ticker_col,fyear)
+                    pass
 
+                else:
+                    ticker_col[0:len(ticker_col)]=[''.join(ticker_col[0:len(ticker_col)])]
+                    # write_mongo(data,row,ticker_col,fyear)
+            except Exception as e:
+                pass
+        csvFile.close()
 create_uin()
 write_ticker()
