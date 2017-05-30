@@ -1,4 +1,6 @@
 from engine.drivers import feedapi
+import pandas as pd
+import numpy as np
 
 class StrategySimulator(object):
     def __init__(self, from_date, to_date, trade_frequency, shares, securityId, strategyCriterion):
@@ -100,54 +102,46 @@ class StrategyCriterion(object):
         if split_criterion == None:
             raise Exception('Could not decode strategy operators')
 
-StrategyCriterion(enter_criterion='ema(20) >= ema(10) or sma(20) >= sma(10) and ema(20) >= ema(10) or sma(20) >= sma(10) or ema(20) >= ema(10) and sma(20) >= sma(10)', stop_loss=10, profit_booking=10)
+# StrategyCriterion(enter_criterion='ema(20) >= ema(10) or sma(20) >= sma(10) and ema(20) >= ema(10) or sma(20) >= sma(10) or ema(20) >= ema(10) and sma(20) >= sma(10)', stop_loss=10, profit_booking=10)
 
-class StrategPerformance(object):
-    def __init__(self):
-        pass
+class StrategyPerformance(object):
+    def __init__(self, df):
+        self.df=df
+        self.total_return=df['re'].iloc[-1]
+        self.realized_profit=df['re']
+        self.daily_return=df['re'] + df['unre']
+    def annualized_return(self):
+        total_return=self.total_return
+        total_days = self.realized_profit.index.size
+        if total_return < -1:
+            total_return = -1
+        return ((1 + total_return)**(252 / total_days) - 1)
+
+    def annualized_std(self):
+        return np.sqrt(252) * np.std(self.daily_return)
+
+    def annualized_downside_std(self):
+        downside_return = self.daily_return.copy()
+        print downside_return
+        downside_return[downside_return > 0] = 0
+        return np.sqrt(252) * np.std(downside_return)
+
+    def annual_vol(self):
+        return self.annualized_std()
+
     def sharpe_ratio(self):
-        """
-        Sharpe ratio = (Mean return − Risk-free rate)/Standard deviation
-        higher sharpe ratio is better
-        input parameters: mean_return, riskfree_rate, std_dev
-        return: float value (0<x<1)
-        """
-        pass
+        stdev = self.annualized_std()
+        if stdev == 0:
+            return np.nan
+        else:
+            return self.annualized_return() / stdev
+
     def sortino_ratio(self):
-        """
-        Sortino ratio=(Expected return - Risk-free rate of return)/Standard deviation of negative assests returns
-        higher Sortino ratio is better.
-        input parameters: exp_return, riskfree_rate, std_dev
-        return: float value (0<x<1)
-        """
-        pass
+        stdev = self.annualized_downside_std()
+        if stdev == 0:
+            return np.nan
+        else:
+            return self.annualized_return() / stdev
+
     def max_drawdown(self):
-        """
-        Maximum Drawdown is expressed in percentage terms and computed as:
-        (Trough Value – Peak Value) ÷ Peak Value
-        input: through_value, peak_value
-        return: float value (0<x<1)
-        """
-        pass
-    def cagr(self):
-        """
-        Maximum Drawdown is expressed in percentage terms and computed as:
-        (Ending value/ Beginning value)^(1/ number of years) -1
-        input: end_value, beg_value, years
-        return: float value (0<x<1)
-        """
-        pass
-    def winning_rate(self):
-        """
-        Win Rate = Number of Impressions Won/ Number of Impressions Bid
-        input: won, total_bid
-        return: float value (0<x<1)
-        """
-        pass
-    def losing_rate(self):
-        """
-        Win Rate = Number of Impressions Won/ Number of Impressions Bid
-        input: loss, total_bid
-        return: float value (0<x<1)
-        """
-        pass
+        return np.max(np.maximum.accumulate(self.daily_return) - self.daily_return)
