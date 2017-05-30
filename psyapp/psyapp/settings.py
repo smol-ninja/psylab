@@ -107,27 +107,13 @@ DATABASES = {
         'NAME': 'psylab_app',
         'USER': 'psylabs',
         'PASSWORD': 'psy@786',
-        'HOST': 'imbacapital.com',
+        'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
             }
     }
 }
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'psylab_app',
-#         'USER': 'psylabs',
-#         'PASSWORD': 'psy@786',
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#         'OPTIONS': {
-#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-#             }
-#     }
-# }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -168,3 +154,5 @@ AUTH_USER_MODEL = 'users.User'
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+
+LUIS_API = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/eb9c8257-04a7-4532-8912-fe2f6e1baf18?subscription-key=677b4af032664caa8295a1d214c9d887&staging=true&verbose=true&timezoneOffset=0&q='

@@ -13,7 +13,7 @@ from .serializers import StrategySerializer, TickerSerializer, IndicatorsSeriali
 from .models import Strategy, Ticker, Indicators, Backtests
 from slp import NLPService
 from .dataset import Dataset
-# from .simulator import StrategyCriterion, StrategPerformance, StrategySimulator
+from .ai_core import nlu_model, validate_text
 
 # Create your views here.l
 @api_view(['POST', 'GET', 'PUT', 'DELETE'])
@@ -29,18 +29,21 @@ def strategy_view(request, **kwargs):
             return Response(status=404, data={'error': e.message})
         if Strategy.objects.filter(name=request.data['name'], user=request.user):
             return Response(status=400, data={'error': 'Strategy name: %s already exists. Choose a different name.' % (request.data['name'])})
-        strategy = Strategy.objects.create(
-                name=request.data['name'],
-                user=request.user,
-                strategy=request.data['strategy'],
-                ticker=ticker,
-                shares=request.data['shares'],
-                stop_loss=request.data['stop_loss'],
-                profit_booking=request.data['profit_booking'],
-                trade_frequency=request.data['trade_frequency']
-            )
-        strategySerializer = StrategySerializer(instance=strategy)
-        return Response(status=200, data=strategySerializer.data)
+        if validate_text(request.data['strategy']):
+            strategy = Strategy.objects.create(
+                    name=request.data['name'],
+                    user=request.user,
+                    strategy=request.data['strategy'],
+                    ticker=ticker,
+                    shares=request.data['shares'],
+                    stop_loss=request.data['stop_loss'],
+                    profit_booking=request.data['profit_booking'],
+                    trade_frequency=request.data['trade_frequency']
+                )
+            strategySerializer = StrategySerializer(instance=strategy)
+            return Response(status=200, data=strategySerializer.data)
+        else:
+            return Response(status=500, data={'error': 'cannot parse your strategy'})
 
     elif request.method == 'GET':
         strategies = Strategy.objects.filter(user=request.user)
@@ -159,6 +162,9 @@ def backtest_view(request):
         )
 
         dataset = Dataset(secId=ticker.uin, from_date=start.strftime('%Y-%m-%d'), to_date=end.strftime('%Y-%m-%d'), frequency=trade_frequency)
-        strategy_criterion = StrategyCriterion(enter_criterion=strategy.decoded_buy_strategy, exit_criterion=strategy.decoded_sell_strategy, profit_booking=strategy.profit_booking, stop_loss=strategy.stop_loss)
+
+        df = nlu_model(strategy_text=strategy.decoded_buy_strategy, secId=ticker.uin, df=dataset)
+
+        # strategy_criterion = StrategyCriterion(enter_criterion=strategy.decoded_buy_strategy, exit_criterion=strategy.decoded_sell_strategy, profit_booking=strategy.profit_booking, stop_loss=strategy.stop_loss)
 
         return Response(status=200, data={'backtestId': buid})
