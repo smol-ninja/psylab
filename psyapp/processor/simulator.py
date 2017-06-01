@@ -1,3 +1,4 @@
+from __future__ import division
 from engine.drivers import feedapi
 import pandas as pd
 import numpy as np
@@ -120,6 +121,11 @@ class StrategyPerformance(object):
     def annualized_std(self):
         return np.sqrt(252) * np.std(self.daily_return)
 
+    def volatility(self):
+        self.stock_change=[]
+        self.index_change=[]
+        for i in range (0,len(self.df.index)):
+            self.stock_change.append(((df['price'][i+1]-df['price'][i])/df['price'][i])*100)
     def annualized_downside_std(self):
         downside_return = self.daily_return.copy()
         print downside_return
@@ -145,3 +151,39 @@ class StrategyPerformance(object):
 
     def max_drawdown(self):
         return np.max(np.maximum.accumulate(self.daily_return) - self.daily_return)
+
+    def volatility(self):
+        self.stock_change=[]
+        self.index_change=[]
+        # TODO: use fetch Data function to fetch price of refrence Index
+        for i in range (0,len(self.df.index)):
+            try:
+                self.stock_change.append(((df['price'][i+1]-df['price'][i])/df['price'][i])*100)
+            except Exception as e:
+                pass
+        return numpy.cov(self.stock_change, self.index_change)[0][1]
+
+    def winloss_rate(self):
+        win=0
+        loss=0
+        last_index=len(self.df.index)
+        df=self.df
+        for i in range (0,last_index):
+            try:
+                if df['re'][i+1]-df['re'][i] > 0:
+                    win+=1
+                elif df['re'][i+1]-df['re'][i] < 0:
+                    loss+=1
+            except Exception as e:
+                pass
+        if df['openposition'][last_index-1] < 0:
+            if df['avgPrice'][last_index-1] > df['price'][last_index-1]:
+                win+=(abs(df['openposition'][last_index-1])/df['share'][0])
+            elif df['avgPrice'][last_index-1] < df['price'][last_index-1]:
+                loss+=(abs(df['openposition'][last_index-1])/df['share'][0])
+        elif df['openposition'][last_index-1] > 0:
+            if df['avgPrice'][last_index-1]<= df['price'][last_index-1]:
+                win+=(abs(df['openposition'][last_index-1])/df['share'][0])
+            elif df['avgPrice'][last_index-1] > df['price'][last_index-1]:
+                loss+=(abs(df['openposition'][last_index-1])/df['share'][0])
+        return {'win':round(win/(win+loss),3), 'loss':round(loss/(win+loss),3)}

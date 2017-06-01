@@ -124,7 +124,6 @@ def dummy_dataframe(start, end):
     end=end.strftime("%Y-%m-%d")
     start = datetime.strptime(start, "%Y-%m-%d").date()
     end = datetime.strptime(end, "%Y-%m-%d").date()
-    print start, end
     index = pd.date_range(start, periods=((end-start).days)+1, freq='D')
     columns = ['sid','share', 'side','price','re','unre', 'openposition','avgPrice']
     df= pd.DataFrame(index=index, columns=columns)
@@ -279,6 +278,7 @@ def backtest_view(request):
                'max_drawdown':round(sp.max_drawdown(), 3),
                'realized_profit':df['re'],
                'unrealized_profit':df['unre'],
+               'rates':sp.winloss_rate(),
                'order_history':df['openposition'],
                'backtestId': buid
                }

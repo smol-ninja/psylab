@@ -90,7 +90,7 @@ def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
 	"""
     secid=str(secId)
     cursor=db.ticker.find_one({"_id":secid})
-    
+
     obj=cursor['ticker']
     hourArr=['091559','101559','111559','121559','131559','141559','151559']
     dFrom=dateutil.parser.parse(datefrom)
@@ -101,41 +101,39 @@ def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
         dateArr.append(str(dFrom.strftime("%d%m%Y")))
         dFrom += delta
     if frequency=='minute':
-        arr=[]
+        newdict={}
         for key in dateArr:
-            dateArr=[]
+            datedict={}
             try:
-                sortedKey=sorted(obj[key])
-                for timekey in sortedKey:
+                for timekey in obj[key]:
                     try:
-                        dateArr.append(obj[key][timekey][objectType])
+                        datedict[timekey]=obj[key][timekey][objectType]
                     except Exception as e:
-                        pass
+                        print 'error', str(e)
             except Exception as e:
-                pass
-            if len(dateArr):
-                arr.append(dateArr)
-        return arr
+                print 'error', str(e)
+            newdict[key]=datedict
+        return newdict
     elif frequency=='daily':
-        arr=[]
+        newdict={}
         for key in dateArr:
             try:
-                arr.append(obj[key]['152959'][objectType])
+                newdict[key]=obj[key]['152959'][objectType]
             except Exception as e:
-                pass
-        return arr
+                print 'error', str(e)
+        return newdict
     elif frequency=='hourly':
-        arr=[]
+        overdict={}
         for key in dateArr:
-            timeArr=[]
+            timedict={}
             for hour in hourArr:
                 try:
-                    timeArr.append(obj[key][hour][objectType])
+                    timedict[hour]=obj[key][hour][objectType]
                 except Exception as e:
-                    pass
-            if len(timeArr):
-                arr.append(timeArr)
-        return arr
+                    print 'error', str(e)
+            overdict[key]=timedict
+        return overdict
+
 
 # print fetch_secId('ACC','future',None,None,'current')
 # print fetch_price('101','2014-09-03T12:15:59','minute') ---> 1479.3
