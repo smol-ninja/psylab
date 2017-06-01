@@ -244,8 +244,8 @@ def backtest_view(request):
 
         dataset = Dataset(secId=ticker.uin, from_date=start.strftime('%Y-%m-%d'), to_date=end.strftime('%Y-%m-%d'), frequency=trade_frequency)
 
-        df = nlu_model(strategy_text=strategy.decoded_buy_strategy, secId=ticker.uin, df=dataset)
-        
+        df = nlu_model(strategy_text=strategy.buy_strategy, secId=ticker.uin, df=dataset.data_frame)
+
         # strategy_criterion = StrategyCriterion(enter_criterion=strategy.decoded_buy_strategy, exit_criterion=strategy.decoded_sell_strategy, profit_booking=strategy.profit_booking, stop_loss=strategy.stop_loss)
 
         # dataset = Dataset(secId=ticker.uin, from_date=start.strftime('%Y-%m-%d'), to_date=end.strftime('%Y-%m-%d'), frequency=trade_frequency)
@@ -253,6 +253,21 @@ def backtest_view(request):
 
         stats={}
         df=dummy_dataframe(start, end)
+        """
+        Input: Nothing, this function will create a dummy dataframe of orders of size 10
+        return:
+                    sid  share side  price
+        2017-05-07    1      2    B     23
+        2017-05-08    1      2    S     30
+        2017-05-09    1      2    B     29
+        2017-05-10    1      2    B     66
+        2017-05-11    1      2    S     27
+        2017-05-12    1      2    S     54
+        2017-05-13    1      2    B     48
+        2017-05-14    1      2    S     30
+        2017-05-15    1      2    S     63
+        2017-05-16    1      2    S     56
+        """
         sp=StrategyPerformance(df)
 
         stats={'anualized_return':round(sp.annualized_return(), 3),

@@ -36,7 +36,7 @@ def nlu_model(strategy_text, secId, df):
     words_list = strategy_text.split()
     words_list[1] = ordinal_to_seconds(words_list[1])
     words_list[-2] = ordinal_to_seconds(words_list[-2])
-    args = [int(words_list[0]) * words_list[1], int(words_list[-3]) * words_list[-2]]
+    args = [int(words_list[0]), int(words_list[-3])]
     ti = [words_list[2], words_list[-1]]
 
     up_relation = ['crosses above', 'exceeds']
@@ -53,8 +53,8 @@ def nlu_model(strategy_text, secId, df):
     ti[0] = tiText_to_tiSym(ti[0])
     ti[1] = tiText_to_tiSym(ti[1])
 
-    df = getattr(object=tis, name=ti[0])(secId, args[0]).results(df)
-    df = getattr(object=tis, name=ti[1])(secId, args[1]).results(df)
+    df = getattr(tis, ti[0])(secId, args[0]).results(df)
+    df = getattr(tis, ti[1])(secId, args[1]).results(df)
 
     return df
 
