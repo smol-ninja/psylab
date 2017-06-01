@@ -37,16 +37,16 @@ def strategy_view(request, **kwargs):
             return Response(status=404, data={'error': e.message})
         if Strategy.objects.filter(name=request.data['name'], user=request.user):
             return Response(status=400, data={'error': 'Strategy name: %s already exists. Choose a different name.' % (request.data['name'])})
-        if validate_text(request.data['strategy']):
+        if validate_text(request.data['buy_strategy']):
             strategy = Strategy.objects.create(
                     name=request.data['name'],
                     user=request.user,
-                    strategy=request.data['strategy'],
+                    buy_strategy=request.data['buy_strategy'],
                     ticker=ticker,
                     shares=request.data['shares'],
                     stop_loss=request.data['stop_loss'],
+                    trade_frequency=request.data['trade_frequency'].lower(),
                     profit_booking=request.data['profit_booking'],
-                    trade_frequency=request.data['trade_frequency']
                 )
             strategySerializer = StrategySerializer(instance=strategy)
             return Response(status=200, data=strategySerializer.data)
@@ -80,7 +80,6 @@ def ticker_view(request):
         ticker_lists = Ticker.objects.all()
         ts = TickerSerializer(ticker_lists, many=True)
         return Response(status=200, data=ts.data)
-
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -246,7 +245,7 @@ def backtest_view(request):
         dataset = Dataset(secId=ticker.uin, from_date=start.strftime('%Y-%m-%d'), to_date=end.strftime('%Y-%m-%d'), frequency=trade_frequency)
 
         df = nlu_model(strategy_text=strategy.decoded_buy_strategy, secId=ticker.uin, df=dataset)
-
+        
         # strategy_criterion = StrategyCriterion(enter_criterion=strategy.decoded_buy_strategy, exit_criterion=strategy.decoded_sell_strategy, profit_booking=strategy.profit_booking, stop_loss=strategy.stop_loss)
 
         # dataset = Dataset(secId=ticker.uin, from_date=start.strftime('%Y-%m-%d'), to_date=end.strftime('%Y-%m-%d'), frequency=trade_frequency)

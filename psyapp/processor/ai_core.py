@@ -69,15 +69,15 @@ def validate_text(strategy_text):
         args = [int(words_list[0]) * words_list[1], int(words_list[-3]) * words_list[-2]]
         ti = [words_list[2], words_list[-1]]
 
-        up_relation = ['crosses above', 'exceeds']
-        below_relation = ['crosses below', 'goes below']
-        equal_relation = ['equals', 'touches', 'equals to', 'equal', 'reaches']
+        up_relation = ['crosses_above', 'exceeds']
+        below_relation = ['crosses_below', 'goes_below']
+        equal_relation = ['equals', 'touches', 'equals_to', 'equal', 'reaches']
 
-        if words_list[3:-3] in up_relation:
+        if words_list[3:-3][0] in up_relation:
             cmp = '>'
-        elif words_list[3:-3] in below_relation:
+        elif words_list[3:-3][0] in below_relation:
             cmp = '<'
-        elif words_list[3:-3] in equal_relation:
+        elif words_list[3:-3][0] in equal_relation:
             cmp = '=='
 
         ti[0] = tiText_to_tiSym(ti[0])
