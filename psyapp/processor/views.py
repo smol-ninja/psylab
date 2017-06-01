@@ -19,6 +19,7 @@ from .serializers import StrategySerializer, TickerSerializer, IndicatorsSeriali
 from .models import Strategy, Ticker, Indicators, Backtests
 from slp import NLPService
 from .dataset import Dataset
+from .ai_core import nlu_model, validate_text
 from .simulator import StrategyPerformance
 # from .simulator import StrategyCriterion, StrategPerformance, StrategySimulator
 
@@ -36,18 +37,21 @@ def strategy_view(request, **kwargs):
             return Response(status=404, data={'error': e.message})
         if Strategy.objects.filter(name=request.data['name'], user=request.user):
             return Response(status=400, data={'error': 'Strategy name: %s already exists. Choose a different name.' % (request.data['name'])})
-        strategy = Strategy.objects.create(
-                name=request.data['name'],
-                user=request.user,
-                strategy=request.data['strategy'],
-                ticker=ticker,
-                shares=request.data['shares'],
-                stop_loss=request.data['stop_loss'],
-                profit_booking=request.data['profit_booking'],
-                trade_frequency=request.data['trade_frequency']
-            )
-        strategySerializer = StrategySerializer(instance=strategy)
-        return Response(status=200, data=strategySerializer.data)
+        if validate_text(request.data['buy_strategy']):
+            strategy = Strategy.objects.create(
+                    name=request.data['name'],
+                    user=request.user,
+                    buy_strategy=request.data['buy_strategy'],
+                    ticker=ticker,
+                    shares=request.data['shares'],
+                    stop_loss=request.data['stop_loss'],
+                    trade_frequency=request.data['trade_frequency'].lower(),
+                    profit_booking=request.data['profit_booking'],
+                )
+            strategySerializer = StrategySerializer(instance=strategy)
+            return Response(status=200, data=strategySerializer.data)
+        else:
+            return Response(status=500, data={'error': 'cannot parse your strategy'})
 
     elif request.method == 'GET':
         strategies = Strategy.objects.filter(user=request.user)
@@ -76,7 +80,6 @@ def ticker_view(request):
         ticker_lists = Ticker.objects.all()
         ts = TickerSerializer(ticker_lists, many=True)
         return Response(status=200, data=ts.data)
-
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -238,11 +241,34 @@ def backtest_view(request):
                 end=end
         )
 
+        dataset = Dataset(secId=ticker.uin, from_date=start.strftime('%Y-%m-%d'), to_date=end.strftime('%Y-%m-%d'), frequency=trade_frequency)
+
+        df = nlu_model(strategy_text=strategy.buy_strategy, secId=ticker.uin, df=dataset.data_frame)
+
+        # strategy_criterion = StrategyCriterion(enter_criterion=strategy.decoded_buy_strategy, exit_criterion=strategy.decoded_sell_strategy, profit_booking=strategy.profit_booking, stop_loss=strategy.stop_loss)
+
         # dataset = Dataset(secId=ticker.uin, from_date=start.strftime('%Y-%m-%d'), to_date=end.strftime('%Y-%m-%d'), frequency=trade_frequency)
         # strategy_criterion = StrategyCriterion(enter_criterion=strategy.decoded_buy_strategy, exit_criterion=strategy.decoded_sell_strategy, profit_booking=strategy.profit_booking, stop_loss=strategy.stop_loss)
+
         stats={}
         df=dummy_dataframe(start, end)
+        """
+        Input: Nothing, this function will create a dummy dataframe of orders of size 10
+        return:
+                    sid  share side  price
+        2017-05-07    1      2    B     23
+        2017-05-08    1      2    S     30
+        2017-05-09    1      2    B     29
+        2017-05-10    1      2    B     66
+        2017-05-11    1      2    S     27
+        2017-05-12    1      2    S     54
+        2017-05-13    1      2    B     48
+        2017-05-14    1      2    S     30
+        2017-05-15    1      2    S     63
+        2017-05-16    1      2    S     56
+        """
         sp=StrategyPerformance(df)
+
         stats={'anualized_return':round(sp.annualized_return(), 3),
                'anualized_standard':round(sp.annualized_std(), 3),
                'anualized_downside_standard':round(sp.annualized_downside_std(), 3),
@@ -256,6 +282,5 @@ def backtest_view(request):
                'order_history':df['openposition'],
                'backtestId': buid
                }
-        # import pdb; pdb.set_trace()
-        # return Response(status=200, data={'backtestId': buid})
+
         return Response(status=200, data=stats)

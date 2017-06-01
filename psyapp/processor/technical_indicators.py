@@ -238,7 +238,7 @@ class Shift(TechnicalIndicator):
         return self.value
     def results(self, data_frame):
         data_frame[self.value] = data_frame[self.data].shift(self.period)
-    return data_frame
+        return data_frame
 
 class SMA(TechnicalIndicator):
     """
@@ -257,7 +257,7 @@ class SMA(TechnicalIndicator):
         return self.value
     def results(self, data_frame):
         data_frame[self.value] = pd.rolling_mean(data_frame[self.data], self.period)
-    return data_frame
+        return data_frame
 
 class EMA(TechnicalIndicator):
     """
