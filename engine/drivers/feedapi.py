@@ -71,16 +71,16 @@ def fetch_data(secId, datetime, frequency, objectType="closeValue"):
             pass
     # TODO: weekly
 
-def fetch_price_list(secId, datefrom, dateto, frequency):
+def fetch_price_list(secId, datefrom, dateto, frequency, dataType='array'):
     """
     a generalized fucntion which return all the close price
     from-to period
     dateformat: "YYYY-MM-DD"
     """
-    return fetch_data_list(secId, datefrom, dateto, frequency,'closeValue')
+    return fetch_data_list(secId, datefrom, dateto, frequency,'closeValue', 'array')
 
 
-def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
+def fetch_data_list(secId, datefrom, dateto, frequency, objectType="closeValue", dataType='array'):
     """
 	a generalized fucntion which can take "close_price"
 	"open_price", "quantity", "open-interest" as type values.
@@ -100,41 +100,77 @@ def fetch_data_list(secId, datefrom, dateto, frequency,objectType="closeValue"):
     while dFrom <= dTo:
         dateArr.append(str(dFrom.strftime("%d%m%Y")))
         dFrom += delta
-    if frequency=='minute':
-        newdict={}
-        for key in dateArr:
-            datedict={}
-            try:
-                for timekey in obj[key]:
-                    try:
-                        datedict[timekey]=obj[key][timekey][objectType]
-                    except Exception as e:
-                        print 'error', str(e)
-            except Exception as e:
-                print 'error', str(e)
-            newdict[key]=datedict
-        return newdict
-    elif frequency=='daily':
-        newdict={}
-        for key in dateArr:
-            try:
-                newdict[key]=obj[key]['152959'][objectType]
-            except Exception as e:
-                print 'error', str(e)
-        return newdict
-    elif frequency=='hourly':
-        overdict={}
-        for key in dateArr:
-            timedict={}
-            for hour in hourArr:
+    if dataType=='array':
+        if frequency=='minute':
+            arr=[]
+            for key in dateArr:
+                dateArr=[]
                 try:
-                    timedict[hour]=obj[key][hour][objectType]
+                    sortedKey=sorted(obj[key])
+                    for timekey in sortedKey:
+                        try:
+                            dateArr.append(obj[key][timekey][objectType])
+                        except Exception as e:
+                            print 'error', str(e)
                 except Exception as e:
                     print 'error', str(e)
-            overdict[key]=timedict
-        return overdict
-
-
+                if len(dateArr):
+                    arr.append(dateArr)
+            return arr
+        elif frequency=='daily':
+            arr=[]
+            for key in dateArr:
+                try:
+                    arr.append(obj[key]['152959'][objectType])
+                except Exception as e:
+                    print 'error', str(e)
+            return arr
+        elif frequency=='hourly':
+            arr=[]
+            for key in dateArr:
+                timeArr=[]
+                for hour in hourArr:
+                    try:
+                        timeArr.append(obj[key][hour][objectType])
+                    except Exception as e:
+                        print 'error', str(e)
+                if len(timeArr):
+                    arr.append(timeArr)
+            return arr
+    else:
+        if frequency=='minute':
+            newdict={}
+            for key in dateArr:
+                datedict={}
+                try:
+                    for timekey in obj[key]:
+                        try:
+                            datedict[timekey]=obj[key][timekey][objectType]
+                        except Exception as e:
+                            print 'error', str(e)
+                except Exception as e:
+                    print 'error', str(e)
+                newdict[key]=datedict
+            return newdict
+        elif frequency=='daily':
+            newdict={}
+            for key in dateArr:
+                try:
+                    newdict[key]=obj[key]['152959'][objectType]
+                except Exception as e:
+                    print 'error', str(e)
+            return newdict
+        elif frequency=='hourly':
+            overdict={}
+            for key in dateArr:
+                timedict={}
+                for hour in hourArr:
+                    try:
+                        timedict[hour]=obj[key][hour][objectType]
+                    except Exception as e:
+                        print 'error', str(e)
+                overdict[key]=timedict
+            return overdict
 # print fetch_secId('ACC','future',None,None,'current')
 # print fetch_price('101','2014-09-03T12:15:59','minute') ---> 1479.3
 # print fetch_data('101','2014-09-03T12:15:59','daily','closeValue') ---> 1467

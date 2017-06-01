@@ -2,17 +2,30 @@ import csv
 import itertools
 import calendar
 import glob
-from pymongo import MongoClient
-from os.path import dirname, realpath
 import uuid
 import os
+from pymongo import MongoClient
+from os.path import dirname, realpath
 dir_path=dirname(realpath(__file__))
 path=(dir_path+'/../../backdata/*.csv')
 
 client = MongoClient()
 db = client.tickdata
 
-
+def create_uin():
+    """
+    Usage: To write symbol and Uin into MongoDB
+    """
+    csvFile = open(dir_path+'/../../backdata/uin.csv')
+    csvReader = csv.reader(csvFile)
+    data = list(csvReader)
+    data=sorted(data, key=lambda x: x[0], reverse=False)
+    for row in range(0,len(data)):
+        # print data[row]
+        db.uin.insert_one({
+            "symbol":data[row][0],
+            "sid":data[row][2]
+        })
 
 def insert_sid_data(sid=None,date=None,timeValue=None,openValue=None,highValue=None,lowValue=None,closeValue=None,volume=None,openInterest=None):
     """
@@ -114,9 +127,14 @@ def create_sid(ticker):
     return sid
 
 def csvs_to_csv():
+    try:
+        os.remove("out.csv")
+    except Exception as e:
+        pass
     firstRun=True
+    left=3
     list_files=list(glob.glob(path))
-    for m in range (0,len(list_files),10):
+    for m in range (0,len(list_files),3):
         fout=open("out.csv","a")
         for i in range(m,m+left):
             csvFile=open(list_files[i])
@@ -124,12 +142,13 @@ def csvs_to_csv():
                 fout.write(line)
             csvFile.close()
         fout.close()
+        print "left:", len(list_files)-(m)
         write_db(firstRun)
         os.remove("out.csv")
         firstRun=False
-        print len(list_files)-(m+left)
-        if len(list_files)-(m+left) < 10:
+        if len(list_files)-(m+left) < 3:
             left=len(list_files)-(m+left)
+
 def is_date(dt,previous_dt):
     """
     Usage: Return boolean value after date comparison
@@ -151,7 +170,6 @@ def write_db(firstRun):
         except Exception as e:
             pass
         if symTyp[len(symTyp)-1]=='I':
-            # print data[row]
             try:
                 ticker_col=["".join(x) for _, x in itertools.groupby(data[row][0], key=str.isdigit)]
                 len_ticker=len(ticker_col)
@@ -160,7 +178,6 @@ def write_db(firstRun):
                 current_time=(data[row][2].replace(":",""))
                 if current_time[0]=='9':
                     current_time='0'+current_time
-                # print data[row]
                 openValue=data[row][3]
                 highValue=data[row][4]
                 lowValue=data[row][5]
@@ -170,7 +187,6 @@ def write_db(firstRun):
                 if lastData['ticker'] is None:
                     sid=create_sid(ticker_col)
                     if firstRun:
-                    # print sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest
                         insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
                     else:
                         insert_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
@@ -187,15 +203,16 @@ def write_db(firstRun):
                 elif ticker_col[0]!=lastData['ticker']:
                     sid=create_sid(ticker_col)
                     if firstRun:
-                    # print sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest
                         insert_sid_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
                     else:
                         insert_datetime_data(sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest)
-                    # print sid,current_date,current_time,openValue,highValue,lowValue,closeValue,volume,openInterest
                     lastData['ticker']=ticker_col[0]
                     lastData['sid']=sid
-                    # pass
             except Exception as e:
                 pass
 
+# import time
+# start_time = time.time()
+create_uin()
 csvs_to_csv()
+# print("--- %s seconds ---" % (time.time() - start_time))
