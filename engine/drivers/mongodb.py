@@ -231,4 +231,4 @@ def write_ticker():
                 pass
         csvFile.close()
 create_uin()
-write_ticker()
+# write_ticker()
