@@ -17,7 +17,6 @@ from rest_framework.response import Response
 
 from .serializers import StrategySerializer, TickerSerializer, IndicatorsSerializer
 from .models import Strategy, Ticker, Indicators, Backtests
-from slp import NLPService
 from .dataset import Dataset
 from .ai_core import nlu_model, validate_text
 from .simulator import StrategyPerformance
